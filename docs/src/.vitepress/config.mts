@@ -5,7 +5,7 @@ import mathjax3 from "markdown-it-mathjax3";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  base: 'REPLACE_ME_WITH_DOCUMENTER_VITEPRESS_BASE_URL_WITH_TRAILING_SLASH',
+  base: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
   title: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
   description: "Docs for NeuroTreeModels.jl",
   lastUpdated: true,
@@ -18,7 +18,7 @@ export default defineConfig({
   markdown: {
     math: true,
     config(md) {
-      md.use(tabsMarkdownPlugin),
+        md.use(tabsMarkdownPlugin),
         md.use(mathjax3)
       // md.use(footnote)
     },
@@ -44,15 +44,15 @@ export default defineConfig({
       { text: 'Quick start', link: '/quick-start' },
       { text: 'Design', link: '/design' },
       { text: 'Models', link: '/models' },
-      { text: 'API', link: '/API' },
-      {
-        text: 'Tutorials',
-        items: [
-          { text: 'Regression', link: '/tutorials/regression-boston' },
-          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
-          { text: 'Classification', link: '/tutorials/classification-iris' },
-        ]
-      },
+      { text: 'API', link: '/API' }
+      // {
+      //   text: 'Tutorials',
+      //   items: [
+      //     { text: 'Regression', link: '/tutorials/regression-boston' },
+      //     { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+      //     { text: 'Classification', link: '/tutorials/classification-iris' },
+      //   ]
+      // },
     ],
 
     sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
