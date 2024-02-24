@@ -64,3 +64,7 @@ X, y = @load_boston
 mach = machine(m, X, y) |> fit!
 p = predict(mach, X)
 ```
+
+## Benchmarks
+
+Benchmarks against prominent ML librairies for tabular is performed at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).

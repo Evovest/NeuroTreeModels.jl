@@ -110,21 +110,7 @@ end
 - StackTree
 - General operator: Chain neurotree with MLP
 
-
 ## Benchmarks
-
-For performance assessment, benchmarks is run on the following selection of common Tabular datasets:
-- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression
-- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem using logistic regression 
-- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem using logistic regression
-- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-class classification using logistic regression
-
-Comparison is performed against the following algos (implementation in link) considered as state of the art on classification tasks:
-- [EvoTrees](https://github.com/Evovest/EvoTrees.jl)
-- [XGBoost](https://github.com/dmlc/XGBoost.jl)
-- [LightGBM](https://github.com/IQVIA-ML/LightGBM.jl)
-- [CatBoost](https://github.com/JuliaAI/CatBoost.jl)
-- [NODE](https://github.com/manujosephv/pytorch_tabular)
 
 For each dataset and algo, the following methodology is followed:
 - Data is split in three parts: `train`, `eval` and `test`
@@ -132,6 +118,23 @@ For each dataset and algo, the following methodology is followed:
 - For each parameter configuration, a model is trained on `train` data until the evaluation metric tracked against the `eval` stops improving (early stopping)
 - The trained model is evaluated against the `test` data
 - The metric presented in below are the ones obtained on the `test` for the model that generated the best `eval` metric.
+
+Source code available at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
+
+For performance assessment, benchmarks is run on the following selection of common Tabular datasets:
+- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression
+- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression 
+- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression
+- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression
+- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression
+- [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression
+
+Comparison is performed against the following algos (implementation in link) considered as state of the art on classification tasks:
+- [EvoTrees](https://github.com/Evovest/EvoTrees.jl)
+- [XGBoost](https://github.com/dmlc/XGBoost.jl)
+- [LightGBM](https://github.com/IQVIA-ML/LightGBM.jl)
+- [CatBoost](https://github.com/JuliaAI/CatBoost.jl)
+- [NODE](https://github.com/manujosephv/pytorch_tabular)
 
 ### Boston
 
