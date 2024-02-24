@@ -9,11 +9,11 @@ pages = [
     "Design" => "design.md",
     "Models" => "models.md",
     "API" => "API.md",
-    # "Tutorials" => [
-    #     "Regression - Boston" => "tutorials/regression-boston.md",
-    #     "Logistic - Titanic" => "tutorials/logistic-titanic.md",
-    #     "Classification - IRIS" => "tutorials/classification-iris.md",
-    # ]
+    "Tutorials" => [
+        "Regression - Boston" => "tutorials/regression-boston.md",
+        "Logistic - Titanic" => "tutorials/logistic-titanic.md",
+        "Classification - IRIS" => "tutorials/classification-iris.md",
+    ]
 ]
 
 # makedocs(
@@ -49,11 +49,11 @@ makedocs(
         devurl="dev";
     ),
     modules=[NeuroTreeModels],
-    pages=pages,
     warnonly=true,
     draft=false,
     source="src",
-    build=joinpath(@__DIR__, "build")
+    build="build",
+    pages=pages,
 )
 
 deploydocs(;
