@@ -1,1 +1,0 @@
-import{_ as e,c as s,o,a7 as a}from"./chunks/framework.BResyDFY.js";const m=JSON.parse('{"title":"Models","description":"","frontmatter":{},"headers":[],"relativePath":"models.md","filePath":"models.md","lastUpdated":null}'),r={name:"models.md"},t=a("",7),i=[t];function n(d,l,p,c,h,u){return o(),s("div",null,i)}const f=e(r,[["render",n]]);export{m as __pageData,f as default};
