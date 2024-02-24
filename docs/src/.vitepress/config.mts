@@ -18,7 +18,7 @@ export default defineConfig({
   markdown: {
     math: true,
     config(md) {
-        md.use(tabsMarkdownPlugin),
+      md.use(tabsMarkdownPlugin),
         md.use(mathjax3)
       // md.use(footnote)
     },
@@ -44,32 +44,32 @@ export default defineConfig({
       { text: 'Quick start', link: '/quick-start' },
       { text: 'Design', link: '/design' },
       { text: 'Models', link: '/models' },
-      { text: 'API', link: '/API' }
-      // {
-      //   text: 'Tutorials',
-      //   items: [
-      //     { text: 'Regression', link: '/tutorials/regression-boston' },
-      //     { text: 'Logistic', link: '/tutorials/logistic-titanic' },
-      //     { text: 'Classification', link: '/tutorials/classification-iris' },
-      //   ]
-      // },
+      { text: 'API', link: '/API' },
+      {
+        text: 'Tutorials',
+        items: [
+          { text: 'Regression', link: '/tutorials/regression-boston' },
+          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+          { text: 'Classification', link: '/tutorials/classification-iris' },
+        ]
+      }
     ],
 
-    sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
-    // sidebar: [
-    //   { text: 'Quick start', link: '/quick-start' },
-    //   { text: 'Design', link: '/design' },
-    //   { text: 'Models', link: '/models' },
-    //   { text: 'API', link: '/API' },
-    //   {
-    //     text: 'Tutorials',
-    //     items: [
-    //       { text: 'Regression', link: '/tutorials/regression-boston' },
-    //       { text: 'Logistic', link: '/tutorials/logistic-titanic' },
-    //       { text: 'Classification', link: '/tutorials/classification-iris' },
-    //     ]
-    //   },
-    // ],
+    // sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
+    sidebar: [
+      { text: 'Quick start', link: '/quick-start' },
+      { text: 'Design', link: '/design' },
+      { text: 'Models', link: '/models' },
+      { text: 'API', link: '/API' },
+      {
+        text: 'Tutorials',
+        items: [
+          { text: 'Regression', link: '/tutorials/regression-boston' },
+          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+          { text: 'Classification', link: '/tutorials/classification-iris' },
+        ]
+      },
+    ],
 
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Evovest/NeuroTreeModels.jl' }
