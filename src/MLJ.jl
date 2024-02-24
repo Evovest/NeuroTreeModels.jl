@@ -1,0 +1,93 @@
+function MMI.fit(
+  model::NeuroTreeRegressor,
+  verbosity::Int,
+  A,
+  y,
+  w=nothing)
+
+  Tables.istable(A) ? dtrain = DataFrame(A) : error("`A` must be a Table")
+  nobs = Tables.DataAPI.nrow(dtrain)
+  feature_names = string.(collect(Tables.schema(dtrain).names))
+  @info feature_names
+  @assert "_target" ∉ feature_names
+  dtrain._target = y
+  target_name = "_target"
+
+  if !isnothing(w)
+    @assert "_weight" ∉ feature_names
+    dtrain._weight = w
+    weight_name = "_weight"
+  else
+    weight_name = nothing
+  end
+  offset_name = nothing
+
+  fitresult, cache = init(model, dtrain; feature_names, target_name, weight_name, offset_name)
+
+  while fitresult.info[:nrounds] < model.nrounds
+    fit_iter!(fitresult, cache)
+  end
+
+  report = (features=fitresult.info[:feature_names],)
+  return fitresult, cache, report
+end
+
+function okay_to_continue(model, fitresult, cache)
+  return model.nrounds - fitresult.info[:nrounds] >= 0
+end
+
+# For EarlyStopping.jl support
+MMI.iteration_parameter(::Type{<:NeuroTreeRegressor}) = :nrounds
+
+function MMI.update(
+  model::NeuroTreeRegressor,
+  verbosity::Integer,
+  fitresult,
+  cache,
+  A,
+  y,
+  w=nothing,
+)
+  if okay_to_continue(model, fitresult, cache)
+    while fitresult.info[:nrounds] < model.nrounds
+      fit_iter!(fitresult, cache)
+    end
+    report = (features=fitresult.info[:feature_names],)
+  else
+    fitresult, cache, report = fit(model, verbosity, A, y, w)
+  end
+  return fitresult, cache, report
+end
+
+function MMI.predict(::NeuroTreeRegressor, fitresult, A)
+  # @assert istable(A)
+  df = DataFrame(A)
+  Tables.istable(A) ? df = DataFrame(A) : error("`A` must be a Table")
+  dinfer = get_df_loader_infer(df; feature_names=fitresult.info[:feature_names], batchsize=2048, device=:cpu)
+  pred = infer(fitresult, dinfer)
+  return pred
+end
+
+MMI.supports_weights(::Type{<:NeuroTreeRegressor}) = true
+
+
+# Metadata
+MMI.metadata_pkg.(
+  (NeuroTreeRegressor),
+  name="NeuroTreeModels",
+  uuid="1db4e0a5-a364-4b0c-897c-2bd5a4a3a1f2",
+  url="https://github.com/Evovest/NeuroTreeModels.jl",
+  julia=true,
+  license="Apache",
+  is_wrapper=false,
+)
+
+MMI.metadata_model(
+  NeuroTreeRegressor,
+  input_scitype=Union{
+    MMI.Table(MMI.Continuous, MMI.Count, MMI.OrderedFactor),
+  },
+  target_scitype=AbstractVector{<:MMI.Continuous},
+  weights=true,
+  path="NeuroTreeModels.NeuroTreeRegressor",
+)

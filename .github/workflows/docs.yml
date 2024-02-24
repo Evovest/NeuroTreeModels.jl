@@ -1,0 +1,46 @@
+name: Docs
+
+on:
+  push:
+    branches:
+      - main
+    tags: '*'
+  pull_request:
+
+env:
+ JULIA_PKG_USE_CLI_GIT: true
+
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  statuses: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+            node-version: 20
+            cache: npm # or pnpm / yarn
+            cache-dependency-path: 'docs/package-lock.json' # this should be a package-lock.json file
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.10'
+      - uses: julia-actions/cache@v1
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.NEUROTREEMODELS_KEY }}
+      - uses: julia-actions/julia-buildpkg@v1
+        with:
+          git_cli: true # = JULIA_PKG_USE_CLI_GIT. Options: true | false (default)
+      - name: Instantiate NPM
+        run: cd docs/; npm i; cd ..
+      - uses: julia-actions/julia-docdeploy@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
