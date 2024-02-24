@@ -6,10 +6,11 @@ import mathjax3 from "markdown-it-mathjax3";
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   base: 'REPLACE_ME_WITH_DOCUMENTER_VITEPRESS_BASE_URL_WITH_TRAILING_SLASH',
-  title: "NeuroTreeModels",
+  title: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
   description: "Docs for NeuroTreeModels.jl",
   lastUpdated: true,
   cleanUrls: true,
+  outDir: 'REPLACE_ME_DOCUMENTER_VITEPRESS', // This is required for MarkdownVitepress to work correctly...
   ignoreDeadLinks: true,
 
   head: [['link', { rel: 'icon', href: '/base/favicon.ico' }]],
@@ -26,6 +27,7 @@ export default defineConfig({
       dark: "github-dark"
     }
   },
+
   themeConfig: {
     outline: 'deep',
     // https://vitepress.dev/reference/default-theme-config
@@ -36,6 +38,7 @@ export default defineConfig({
         detailedView: true
       }
     },
+
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Quick start', link: '/quick-start' },
@@ -51,20 +54,23 @@ export default defineConfig({
         ]
       },
     ],
-    sidebar: [
-      { text: 'Quick start', link: '/quick-start' },
-      { text: 'Design', link: '/design' },
-      { text: 'Models', link: '/models' },
-      { text: 'API', link: '/API' },
-      {
-        text: 'Tutorials',
-        items: [
-          { text: 'Regression', link: '/tutorials/regression-boston' },
-          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
-          { text: 'Classification', link: '/tutorials/classification-iris' },
-        ]
-      },
-    ],
+
+    sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
+    // sidebar: [
+    //   { text: 'Quick start', link: '/quick-start' },
+    //   { text: 'Design', link: '/design' },
+    //   { text: 'Models', link: '/models' },
+    //   { text: 'API', link: '/API' },
+    //   {
+    //     text: 'Tutorials',
+    //     items: [
+    //       { text: 'Regression', link: '/tutorials/regression-boston' },
+    //       { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+    //       { text: 'Classification', link: '/tutorials/classification-iris' },
+    //     ]
+    //   },
+    // ],
+
     socialLinks: [
       { icon: 'github', link: 'https://github.com/Evovest/NeuroTreeModels.jl' }
     ]
