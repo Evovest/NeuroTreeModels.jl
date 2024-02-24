@@ -6,7 +6,6 @@ using DataFrames
 config = NeuroTreeRegressor(
     device=:cpu,
     loss=:mse,
-    tree_type=:stack,
     actA=:identity,
     init_scale=1.0,
     nrounds=200,
