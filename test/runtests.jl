@@ -1,5 +1,5 @@
 using Test
-using NeuroTrees
+using NeuroTreeModels
 using Tables
 using DataFrames
 
