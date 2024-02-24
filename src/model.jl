@@ -128,7 +128,7 @@ The fields of `report(mach)` are:
 
 ## Internal API
 
-```
+```julia
 using NeuroTreeModels, DataFrames
 config = NeuroTreeRegressor(depth=5, nrounds=10)
 nobs, nfeats = 1_000, 5
@@ -141,7 +141,7 @@ p = m(dtrain)
 
 ## MLJ Interface
 
-```
+```julia
 using MLJBase, NeuroTreeModels
 m = NeuroTreeRegressor(depth=5, nrounds=10)
 X, y = @load_boston
