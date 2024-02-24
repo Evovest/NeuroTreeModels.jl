@@ -9,11 +9,11 @@ pages = [
     "Design" => "design.md",
     "Models" => "models.md",
     "API" => "API.md",
-    "Tutorials" => [
-        "Regression - Boston" => "tutorials/regression-boston.md",
-        "Logistic - Titanic" => "tutorials/logistic-titanic.md",
-        "Classification - IRIS" => "tutorials/classification-iris.md",
-    ]
+    # "Tutorials" => [
+    #     "Regression - Boston" => "tutorials/regression-boston.md",
+    #     "Logistic - Titanic" => "tutorials/logistic-titanic.md",
+    #     "Classification - IRIS" => "tutorials/classification-iris.md",
+    # ]
 ]
 
 # makedocs(
@@ -41,7 +41,7 @@ pages = [
 # )
 
 makedocs(
-    sitename="NeuroTreeModels",
+    sitename="NeuroTreeModels.jl",
     authors="Evovest and contributors.",
     format=DocumenterVitepress.MarkdownVitepress(
         repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
