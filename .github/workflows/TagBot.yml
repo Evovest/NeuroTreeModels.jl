@@ -25,7 +25,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.actor == 'JuliaTagBot'
     runs-on: ubuntu-latest
     steps:
+      - uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.NEUROTREEMODELS_KEY }}
       - uses: JuliaRegistries/TagBot@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          ssh: ${{ secrets.NEUROTREEMODELS_KEY }}
