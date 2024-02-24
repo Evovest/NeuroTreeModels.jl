@@ -54,7 +54,6 @@ export default defineConfig({
       //   ]
       // }
     ],
-
     sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
     // sidebar: [
     //   { text: 'Quick start', link: '/quick-start' },
