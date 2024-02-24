@@ -20,7 +20,7 @@
 
 ## Configuring a model
 
-A model configuration is defined with the [NeuroTreeRegressor](@ref) constructor:
+A model configuration is defined with the [NeuroTreeRegressor](https://evovest.github.io/NeuroTreeModels.jl/dev/models#NeuroTreeModels.NeuroTreeRegressor) constructor:
 
 ```julia
 using NeuroTreeModels, DataFrames
@@ -35,7 +35,7 @@ config = NeuroTreeRegressor(
 
 ## Training
 
-Building a training a model according to the above `config` is done [NeuroTreeModels.fit](@ref).
+Building a training a model according to the above `config` is done [NeuroTreeModels.fit](https://evovest.github.io/NeuroTreeModels.jl/dev/API#NeuroTreeModels.fit).
 See the docs for additinal features, notably early stopping support through the tracking of an evaluation metric.
 
 ```julia
