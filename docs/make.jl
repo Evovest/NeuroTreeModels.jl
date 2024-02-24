@@ -4,7 +4,6 @@ using DocumenterVitepress
 using NeuroTreeModels
 
 pages = [
-    "index" => "index.md",
     "Quick start" => "quick-start.md",
     "Design" => "design.md",
     "Models" => "models.md",
@@ -52,7 +51,7 @@ makedocs(
     warnonly=true,
     draft=false,
     source="src",
-    build="build",
+    build=joinpath(@__DIR__, "build"),
     pages=pages,
 )
 
