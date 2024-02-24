@@ -1,7 +1,7 @@
 push!(LOAD_PATH, "../src/")
 using Documenter
 using DocumenterVitepress
-using NeuroTrees
+using NeuroTreeModels
 
 pages = [
     "index" => "index.md",
@@ -17,14 +17,14 @@ pages = [
 ]
 
 # makedocs(
-#     sitename="NeuroTrees",
+#     sitename="NeuroTreeModels",
 #     authors="Jeremie Desgagne-Bouchard and contributors.",
 #     format=Documenter.HTML(
 #         sidebar_sitename=false,
 #         edit_link="main",
 #         assets=["assets/style.css"]
 #     ),
-#     modules=[NeuroTrees],
+#     modules=[NeuroTreeModels],
 #     pages=pages,
 #     warnonly=true,
 #     draft=false,
@@ -33,7 +33,7 @@ pages = [
 # )
 
 # deploydocs(
-#     repo="github.com/Evovest/NeuroTrees.jl.git",
+#     repo="github.com/Evovest/NeuroTreeModels.jl.git",
 #     target="build",
 #     devbranch="main",
 #     devurl="dev",
@@ -42,10 +42,10 @@ pages = [
 
 
 makedocs(
-    sitename="NeuroTrees",
+    sitename="NeuroTreeModels",
     authors="Jeremie Desgagne-Bouchard and contributors.",
     format=DocumenterVitepress.MarkdownVitepress(),
-    modules=[NeuroTrees],
+    modules=[NeuroTreeModels],
     warnonly=true,
     draft=false,
     source="src",
@@ -60,7 +60,7 @@ makedocs(
 deploy_config = Documenter.auto_detect_deploy_system()
 deploy_decision = Documenter.deploy_folder(
     deploy_config;
-    repo="github.com/Evovest/NeuroTrees.jl", # this must be the full URL!
+    repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
     devbranch="main",
     devurl="dev",
     push_preview=true,
@@ -78,7 +78,7 @@ vitepress_config_file = joinpath(@__DIR__, "build", ".vitepress", "config.mts")
 config = read(vitepress_config_file, String)
 new_config = replace(
     config,
-    "base: 'REPLACE_ME_WITH_DOCUMENTER_VITEPRESS_BASE_URL_WITH_TRAILING_SLASH'" => "base: '/NeuroTrees.jl/$(folder)$(isempty(folder) ? "" : "/")'"
+    "base: 'REPLACE_ME_WITH_DOCUMENTER_VITEPRESS_BASE_URL_WITH_TRAILING_SLASH'" => "base: '/NeuroTreeModels.jl/$(folder)$(isempty(folder) ? "" : "/")'"
 )
 write(vitepress_config_file, new_config)
 
@@ -91,7 +91,7 @@ haskey(ENV, "CI") && begin
 end
 
 deploydocs(;
-    repo="github.com/Evovest/NeuroTrees.jl", # this must be the full URL!
+    repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
     target="build/.vitepress/dist", # this is where Vitepress stores its output
     branch="gh-pages",
     devbranch="main",
