@@ -8,13 +8,49 @@ pages = [
     "Design" => "design.md",
     "Models" => "models.md",
     "API" => "API.md",
-    "Tutorials" => [
-        "Regression - Boston" => "tutorials/regression-boston.md",
-        "Logistic - Titanic" => "tutorials/logistic-titanic.md",
-        "Classification - IRIS" => "tutorials/classification-iris.md",
-    ]
+    # "Tutorials" => [
+    #     "Regression - Boston" => "tutorials/regression-boston.md",
+    #     "Logistic - Titanic" => "tutorials/logistic-titanic.md",
+    #     "Classification - IRIS" => "tutorials/classification-iris.md",
+    # ]
 ]
 
+makedocs(
+    sitename="NeuroTreeModels",
+    authors="Evovest and contributors.",
+    format=DocumenterVitepress.MarkdownVitepress(
+        repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
+        devbranch="main",
+        devurl="dev";
+    ),
+    modules=[NeuroTreeModels],
+    warnonly=true,
+    draft=false,
+    source="src",
+    build="build",
+    pages=pages,
+)
+
+deploydocs(;
+    repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
+    target="build", # this is where Vitepress stores its output
+    branch="gh-pages",
+    devbranch="main",
+    push_preview=true
+)
+
+
+# pages = [
+#     "Quick start" => "quick-start.md",
+#     "Design" => "design.md",
+#     "Models" => "models.md",
+#     "API" => "API.md",
+#     "Tutorials" => [
+#         "Regression - Boston" => "tutorials/regression-boston.md",
+#         "Logistic - Titanic" => "tutorials/logistic-titanic.md",
+#         "Classification - IRIS" => "tutorials/classification-iris.md",
+#     ]
+# ]
 # makedocs(
 #     sitename="NeuroTreeModels",
 #     authors="Jeremie Desgagne-Bouchard and contributors.",
@@ -39,29 +75,7 @@ pages = [
 #     versions=["stable" => "v^", "v#.#", "dev" => "dev"],
 # )
 
-makedocs(
-    sitename="NeuroTreeModels",
-    authors="Evovest and contributors.",
-    format=DocumenterVitepress.MarkdownVitepress(
-        repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
-        devbranch="main",
-        devurl="dev";
-    ),
-    modules=[NeuroTreeModels],
-    warnonly=true,
-    draft=false,
-    source="src",
-    build=joinpath(@__DIR__, "build"),
-    pages=pages,
-)
 
-deploydocs(;
-    repo="github.com/Evovest/NeuroTreeModels.jl", # this must be the full URL!
-    target="build", # this is where Vitepress stores its output
-    branch="gh-pages",
-    devbranch="main",
-    push_preview=true
-)
 
 # We manually obtain the Documenter deploy configuration,
 # so we can use it to set Vitepress's settings.
