@@ -44,23 +44,7 @@ export default defineConfig({
       { text: 'Quick start', link: '/quick-start' },
       { text: 'Design', link: '/design' },
       { text: 'Models', link: '/models' },
-      { text: 'API', link: '/API' },
-      {
-        text: 'Tutorials',
-        items: [
-          { text: 'Regression', link: '/tutorials/regression-boston' },
-          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
-          { text: 'Classification', link: '/tutorials/classification-iris' },
-        ]
-      }
-    ],
-
-    // sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
-    sidebar: [
-      { text: 'Quick start', link: '/quick-start' },
-      { text: 'Design', link: '/design' },
-      { text: 'Models', link: '/models' },
-      { text: 'API', link: '/API' },
+      { text: 'API', link: '/API' }
       // {
       //   text: 'Tutorials',
       //   items: [
@@ -68,7 +52,23 @@ export default defineConfig({
       //     { text: 'Logistic', link: '/tutorials/logistic-titanic' },
       //     { text: 'Classification', link: '/tutorials/classification-iris' },
       //   ]
-      // },
+      // }
+    ],
+
+    // sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
+    sidebar: [
+      { text: 'Quick start', link: '/quick-start' },
+      { text: 'Design', link: '/design' },
+      { text: 'Models', link: '/models' },
+      { text: 'API', link: '/API' }
+      // {
+      //   text: 'Tutorials',
+      //   items: [
+      //     { text: 'Regression', link: '/tutorials/regression-boston' },
+      //     { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+      //     { text: 'Classification', link: '/tutorials/classification-iris' },
+      //   ]
+      // }
     ],
 
     socialLinks: [
