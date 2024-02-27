@@ -402,6 +402,13 @@ function get_model_chain(L; config, nfeats)
                 actA=_act_dict[config.actA],
                 init_scale=config.init_scale)
         )
+
+        chain = Chain(
+            BatchNorm(nfeats),
+            tree=NeuroTree(hidden_size => hidden_size; depth, ntrees, actA, init_scale),
+            tree=NeuroTree(hidden_size => hidden_size; depth, ntrees, actA, init_scale),
+        )
+
     end
 
     return chain

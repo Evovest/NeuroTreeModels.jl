@@ -35,8 +35,8 @@ config = NeuroTreeRegressor(
 
 ## Training
 
-Building a training a model according to the above `config` is done [NeuroTreeModels.fit](https://evovest.github.io/NeuroTreeModels.jl/dev/API#NeuroTreeModels.fit).
-See the docs for additinal features, notably early stopping support through the tracking of an evaluation metric.
+Building and training a model according to the above `config` is done with [NeuroTreeModels.fit](https://evovest.github.io/NeuroTreeModels.jl/dev/API#NeuroTreeModels.fit).
+See the docs for additional features, notably early stopping support through the tracking of an evaluation metric.
 
 ```julia
 nobs, nfeats = 1_000, 5
@@ -67,4 +67,4 @@ p = predict(mach, X)
 
 ## Benchmarks
 
-Benchmarks against prominent ML librairies for tabular is performed at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
+Benchmarking against prominent ML libraries for tabular is performed at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).

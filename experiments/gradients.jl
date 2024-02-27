@@ -6,29 +6,49 @@ using PlotlyLight
 # vanilla DataFrame
 #################################
 nobs = 1000
-nfeats = 10
-x, y = randn(nobs, nfeats), randn(nobs);
+nfeats = 100
+x, y = randn(Float32, nobs, nfeats), randn(Float32, nobs);
 df = DataFrame(x, :auto);
 df.y = y;
+feature_names = Symbol("x" .* string.(1:nfeats))
 
-config = NeuroTreeRegressor()
+config = NeuroTreeRegressor(;
+    actA=:identity,
+    depth=3,
+    ntrees=32,
+    init_scale=0.1,
+)
 
-chain = get_model_chain(L; config, nfeats)
+loss = NeuroTreeModels.get_loss_fn(config)
+L = NeuroTreeModels.get_loss_type(config)
+chain = NeuroTreeModels.get_model_chain(L; config, nfeats)
 info = Dict(
     :device => config.device,
     :nrounds => 0,
     :feature_names => feature_names
 )
 m = NeuroTreeModel(L, chain, info)
-if config.device == :gpu
-    m = m |> gpu
-end
+xb = x'
+yb = y
+m(xb)
 
-optim = OptimiserChain(NAdam(config.lr), WeightDecay(config.wd))
-opts = Optimisers.setup(optim, m)
+w = m.chain.layers[2].trees[1].w
+b = m.chain.layers[2].trees[1].b
+p = m.chain.layers[2].trees[1].p
 
+grads = NeuroTreeModels.gradient(model -> loss(model, xb, yb), m)[1]
+grad_layers = grads[:chain][:layers]
+grad_neuro = grad_layers[2][:trees][1]
+dw = grad_neuro[:w]
+db = grad_neuro[:b]
+dp = grad_neuro[:p]
 
-deval = NeuroTrees.get_df_loader_infer(df; feature_names, batchsize=32)
-for d in deval
-    @info size(d)
-end
+# fig =  plot(x=vec(w); type=:scatter, mode="markers")
+fig = plot(x=vec(w); type=:histogram)
+fig = plot(x=vec(dw); type=:histogram)
+
+fig = plot(x=vec(b); type=:histogram)
+fig = plot(x=vec(db); type=:histogram)
+
+fig = plot(x=vec(p); type=:histogram)
+fig = plot(x=vec(dp); type=:histogram)
