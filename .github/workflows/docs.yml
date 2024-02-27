@@ -32,10 +32,6 @@ jobs:
         with:
           version: '1.10'
       - uses: julia-actions/cache@v1
-      - uses: webfactory/ssh-agent@v0.8.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.NEUROTREEMODELS_KEY }}
       - uses: julia-actions/julia-buildpkg@v1
         with:
           git_cli: true # = JULIA_PKG_USE_CLI_GIT. Options: true | false (default)
@@ -44,3 +40,4 @@ jobs:
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.NEUROTREEMODELS_KEY }}
