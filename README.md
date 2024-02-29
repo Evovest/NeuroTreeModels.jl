@@ -2,15 +2,18 @@
 
 > Differentiable tree-based models for tabular data. 
 
-| Documentation | CI Status |
-|:------------------------:|:----------------:|
-| [![][docs-latest-img]][docs-latest-url] | [![][ci-img]][ci-url] |
+| Documentation | CI Status | DOI |
+|:------------------------:|:----------------:|:----------------:|
+| [![][docs-latest-img]][docs-latest-url] | [![][ci-img]][ci-url] | [![][DOI-img]][DOI-url] |
 
 [docs-latest-img]: https://img.shields.io/badge/docs-latest-blue.svg
 [docs-latest-url]: https://evovest.github.io/NeuroTreeModels.jl/dev
 
 [ci-img]: https://github.com/Evovest/NeuroTreeModels.jl/workflows/CI/badge.svg
 [ci-url]: https://github.com/Evovest/NeuroTreeModels.jl/actions?query=workflow%3ACI+branch%3Amain
+
+[DOI-img]: https://zenodo.org/badge/762536508.svg
+[DOI-url]: https://zenodo.org/doi/10.5281/zenodo.10725028
 
 ## Installation
 
