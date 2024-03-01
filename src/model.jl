@@ -212,12 +212,14 @@ end
 
 get_loss_type(config::NeuroTreeRegressor) = _loss_type_dict[config.loss]
 
-struct NeuroTree{W,B,P}
-    w::W
-    b::B
-    p::P
+struct NeuroTree{outsize,M,V}
+    outsize::Int
+    w::M
+    b::V
+    p::M
     actA::Function
 end
+NeuroTree(outsize::Int, w::M, b::V, p::M, actA::Function) where {M,V} = NeuroTree{outsize,M,V}(outsize, w, b, p, actA)
 
 @functor NeuroTree
 # Flux.trainable(m::NeuroTree) = (w=m.w, b=m.b, p=m.p)
@@ -227,22 +229,38 @@ function node_weights(m::NeuroTree, x)
     # nw = sigmoid_fast.(m.w * x .+ m.b)
     nw = sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
-    return reshape(nw, :, size(m.p, 3), size(x, 2))
+    return reshape(nw, :, size(m.p, 2), size(x, 2))
 end
 
 include("leaf_weights.jl")
 
-function (m::NeuroTree{W,B,P})(x::W) where {W,B,P}
+# function (m::NeuroTree{W,B,P})(x::W) where {W,B,P}
+#     # [F, B] -> [N, T, B]
+#     nw = node_weights(m, x)
+#     # [N, T, B] -> [L, T, B]
+#     (_, lw) = leaf_weights!(nw)
+#     # [L, T, B], [P, L, T] -> [P, B]
+#     pred = dot_prod_agg(lw, m.p) ./ size(m.p, 3)
+#     return pred
+# end
+
+# dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
+
+function (m::NeuroTree{N,M,V})(x::M) where {N,M,V}
     # [F, B] -> [N, T, B]
     nw = node_weights(m, x)
     # [N, T, B] -> [L, T, B]
     (_, lw) = leaf_weights!(nw)
-    # [L, T, B], [P, L, T] -> [P, B]
-    pred = dot_prod_agg(lw, m.p) ./ size(m.p, 3)
+    # [L, T, B], [L, T] -> [1, T, B]
+    pred = sum(lw .* m.p, dims=1)
+    # reshape to keep N outputs
+    pred = reshape(pred, size(pred, 2) ÷ N, N, size(pred, 3))
+    # [P, B] aggregate over trees per output
+    pred = dropdims(mean(pred, dims=1), dims=1)
     return pred
 end
 
-dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
+# dot_prod_agg(lw, p) = dropdims(sum(lw .* p, dims=2), dims=2)
 
 """
     NeuroTree
@@ -252,11 +270,13 @@ Initialization of a NeuroTree.
 function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.0)
     nnodes = 2^depth - 1
     nleaves = 2^depth
+    _ntrees_tot = outs * ntrees
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * ntrees), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
-        # Float32.(randn(outs, nleaves, ntrees) ./ 1 .* init_scale), # p
+        Int(outs),
+        Flux.glorot_uniform(nnodes * _ntrees_tot, ins), # w
+        zeros(Float32, nnodes * _ntrees_tot), # b
+        Float32.((rand(nleaves, _ntrees_tot) .- 0.5) .* sqrt(12) .* init_scale), # p
+        # Float32.(randn(outs, nleaves, _ntrees_tot) ./ 1 .* init_scale), # p
         actA,
     )
     return nt
@@ -264,11 +284,13 @@ end
 function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1.0)
     nnodes = 2^depth - 1
     nleaves = 2^depth
+    _ntrees_tot = outs * ntrees
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * ntrees), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
-        # Float32.(randn(outs, nleaves, ntrees) ./ 1 .* init_scale), # p
+        Int(outs),
+        Flux.glorot_uniform(nnodes * _ntrees_tot, ins), # w
+        zeros(Float32, nnodes * _ntrees_tot), # b
+        Float32.((rand(nleaves, _ntrees_tot) .- 0.5) .* sqrt(12) .* init_scale), # p
+        # Float32.(randn(outs, nleaves, _ntrees_tot) ./ 1 .* init_scale), # p
         actA,
     )
     return nt

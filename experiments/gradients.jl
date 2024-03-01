@@ -16,6 +16,9 @@ config = NeuroTreeRegressor(;
     actA=:identity,
     depth=3,
     ntrees=32,
+    outsize=1,
+    stack_size=1,
+    hidden_size=4,
     init_scale=0.1,
 )
 
