@@ -275,9 +275,9 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nt = NeuroTree(
         Int(outs),
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * _ntrees_tot), # b
-        Float32.((rand(nleaves, _ntrees_tot) .- 0.5) .* sqrt(12) .* init_scale), # p
-        # Float32.(randn(outs, nleaves, _ntrees_tot) ./ 1 .* init_scale), # p
+        zeros(Float32, nnodes * ntrees), # b
+        Float32.((rand(nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
+        # Float32.(randn(outs, nleaves, ntrees) ./ 1 .* init_scale), # p
         actA,
     )
     return nt
@@ -290,9 +290,9 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nt = NeuroTree(
         Int(outs),
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * _ntrees_tot), # b
-        Float32.((rand(nleaves, _ntrees_tot) .- 0.5) .* sqrt(12) .* init_scale), # p
-        # Float32.(randn(outs, nleaves, _ntrees_tot) ./ 1 .* init_scale), # p
+        zeros(Float32, nnodes * ntrees), # b
+        Float32.((rand(nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
+        # Float32.(randn(outs, nleaves, ntrees) ./ 1 .* init_scale), # p
         actA,
     )
     return nt
