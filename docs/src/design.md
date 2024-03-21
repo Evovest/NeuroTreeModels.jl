@@ -27,12 +27,13 @@ The above is a binary decision tree of `depth` 2.
 
 Highlighted in green is the decision path taken for a given sample. It goes into `depth` number of binary decisions, resulting in the path `node1 → node3 → leaf3`.
 
-One way to view the role of the decision nodes is to provide an index of the leaf prediction to fetch (index `3` in the figure). Such indexing view is applicable given that node routing relies a hard conditions: it's either `true` or `false`. 
+One way to view the role of the decision nodes (gray background) is to provide an index of the leaf prediction to fetch (index `3` in the figure). Such indexing view is applicable given that node routing relies on hard conditions: either `true` or `false`. 
 
-An alternative perspective that we will adopt here is that tree nodes collectively provide weights associated to each leaf. A tree prediction is the weighted sum of the leaf's value and those leaf weights.
+An alternative perspective that we adopt here is that tree nodes collectively provide weights associated to each leaf. A tree prediction becomes the weighted sum of the leaf's values and the leaf's weights.
 In regular decision trees, since all conditions are binary, leaf weights take the form of a mask. In the above example, the mask is `[0, 0, 1, 0]`.
 
-By relaxing these these hard condition into soft ones, the mask takes the form of a probability vector associated to each leaf, where `∑(leaf_weights) = 1` and where each each `leaf_weight` element is `[0, 1]`.
+By relaxing these these hard condition into soft ones, the mask takes the form of a probability vector associated to each leaf, where `∑(leaf_weights) = 1` and where each each `leaf_weight` element is `[0, 1]`. 
+A tree prediction can be obtained as the folloing dot product: `leaf_values' *  leaf_weights`. 
 
 The following illustrate how a basic decision tree is represented as a single differentiable tree within NeuroTree:
 
@@ -122,12 +123,12 @@ For each dataset and algo, the following methodology is followed:
 Source code available at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
 
 For performance assessment, benchmarks is run on the following selection of common Tabular datasets:
-- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression
-- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression 
-- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression
-- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression
-- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression
-- [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression
+- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression. 515,345 observations, 90 features.
+- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression. 1,200,192 observations, 136 features.
+- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression. 709,877 observations, 519 features.
+- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression. 11,000,000 observations, 28 features.
+- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression. 
+- [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression. 891 observations, 7 features.
 
 Comparison is performed against the following algos (implementation in link) considered as state of the art on classification tasks:
 - [EvoTrees](https://github.com/Evovest/EvoTrees.jl)
