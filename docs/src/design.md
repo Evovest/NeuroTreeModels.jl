@@ -4,8 +4,7 @@
 
 This work introduces `NeuroTree` a differentiable binary tree operator adapted for the treatment of tabular data. 
 
-- Address the shortcoming of traditional trees greediness: all node and leaves are learned simultaneously. It provides the ability to learn an optimal configuration across all of the tree levels. 
-The notion extent also to the collection of trees that are simultaneously learned.
+- Address the shortcoming of traditional trees greediness: all node and leaves are learned simultaneously. It provides the ability to learn an optimal configuration across all of the tree levels. The notion extent also to the collection of trees that are simultaneously learned.
 
 - Extend the notion of forest/bagging and boosting. 
     - Although the predictions from the all of of the trees forming a NeuroTree operator are averaged, each of the tree prediction tuned simultaneously. This is different from boosting (ex XGBoost) where each tree is learned sequentially and over the residual from previous trees. Also, unlike random forest and bagging, trees aren't learned in isolation but tuned collaboratively, resulting in predictions that account for all of the other trees predictions.
@@ -16,8 +15,9 @@ The notion extent also to the collection of trees that are simultaneously learne
 - Compatible with general purpose machine learning framework.
     - MLJ integration
 
-
 ## Architecture
+
+A NeuroTree operator acts as collection of complete binary trees, ie. trees without any pruned node. In order to be differentiable, hence trainable using first-order gradient based methods (ex. Adam optimiser), each tree path implements a soft decision rather than a hard one like in traditional decision tree. 
 
 To introduce the implementation of a NeuroTree, we first get back to the architecture of a basic decision tree.
 
@@ -41,18 +41,15 @@ The following illustrate how a basic decision tree is represented as a single di
 
 ### Node weights
 
-To derive how a NeuroTree performs those soft decision, we first break down the structure of how the traditional hard decisions are taken.
-A nodes's split actually relies on 2 binary conditions:
+To illustrate how a NeuroTree derives the soft decision probability (referred to `NW1 - NW3` in the above figure), we first break down how a traditional tree split condition is derived from 2 underlying decisions:
 
-### 1. Selection of the feature on which to perform the condition
+1. *Selection of the feature on which to perform the condition*.
+Such selection can be represented as the application of a binary mask where all elements are set to `false` except for that single selected feature where it's set to `true`.  
 
-The selection of a feature out of the selected ones
-In NeuroTree, these hard decisions are translated into soft, differentiable ones:  
-    1. 
+2. *Selection of the condition's threshold value*.
+For a given observation, if the selected feature's value is below that threshold, then the node decision is set to `false` (pointing to left child), and `true` otherwise (pooinnting to right child).  
 
-### 2. Selection of the condition's threshold value
-
-A NeuroTree operator acts as collection of complete binary trees, ie. trees without any pruned node. In order to be differentiable, hence trainable using gradient based methods such as Adam, each tree path implements a soft decision rather than a hard one like in traditional decision tree. 
+In NeuroTree, these 2 hard steps are translated into soft, differentiable ones. 
 
 ### Leaf weights
 
@@ -104,8 +101,6 @@ end
 
 ### Tree prediction
 
-
-
 ## Composability
 
 - StackTree
@@ -137,7 +132,7 @@ Comparison is performed against the following algos (implementation in link) con
 - [CatBoost](https://github.com/JuliaAI/CatBoost.jl)
 - [NODE](https://github.com/manujosephv/pytorch_tabular)
 
-### Boston
+#### Boston
 
 | **model\_type** | **train\_time** | **mse** | **gini** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -147,7 +142,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 0.865           | 25.4    | 0.926    |
 | catboost        | 0.0511          | **13.9**| 0.946    |
 
-### Titanic
+#### Titanic
 
 | **model\_type** | **train\_time** | **logloss** | **accuracy** |
 |:---------------:|:---------------:|:-----------:|:------------:|
@@ -157,7 +152,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 0.615           | 0.390       | **0.836**    |
 | catboost        | 0.0326          | 0.388       | **0.836**    |
 
-### Year
+#### Year
 
 | **model\_type** | **train\_time** | **mse** | **gini** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -167,7 +162,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 8.11            | 80.3    | 0.624    |
 | catboost        | 80.0            | 79.2    | 0.635    |
 
-### MSRank
+#### MSRank
 
 | **model\_type** | **train\_time** | **mse** | **ndcg** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -177,7 +172,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 37.5            |**0.553**| 0.503    |
 | catboost        | 15.1            | 0.558   | 0.497    |
 
-### Yahoo
+#### Yahoo
 
 | **model\_type** | **train\_time** | **mse** | **ndcg** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -187,7 +182,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 244.0           |**0.540**| 0.796    |
 | catboost        | 161.0           | 0.561   | 0.794    |
 
-### Higgs
+#### Higgs
 
 | **model\_type** | **train\_time** | **logloss** | **accuracy** |
 |:---------------:|:---------------:|:-----------:|:------------:|
@@ -197,6 +192,13 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 1330.0          | 0.461       | 0.779        |
 | catboost        | 7180.0          | 0.464       | 0.775        |
 
+## Discussion
+
+NeuroTreeModels can achieve top tier performance on both small (Boston) and large (Higgs) datasets. 
+Its performance trailed on the two ranking regression problems (MSRank and Yahoo). Although the large number of features is a distinguishing characteristic of the Yahoo dataset, the 136 features of MSRank are not materially different for the YEAR dataset (90 features), and on which NeuroTreeMoels outperform all other algos. Considering that no sparsity mechanism is present in the feature selection defining split node conditions, datasets with very large numbe rof feature may present a challenge. Substituting the default `tanh` activation with a sparsity inducing one such as `hardsigmoid` or `EntrOpt` has not resulted
+in improvement from the experiments. 
+
+Another potential weakness may stem from the soft nature of the decision criteria. Traditional trees are able to isolate the effect of a specific feature value. This can be notably meaningfull in a situation where a numeric feature taking a value of 0 may carry a particular meaning (ex. missing, unknown value). Such stump the effect of a feature should be harder to pick with NeuroTree's soft condition. 
 
 ## References
 

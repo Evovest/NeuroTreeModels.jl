@@ -20,7 +20,7 @@ config = NeuroTreeRegressor(
 
 # stack tree
 nobs = 1_000
-nfeats = 100
+nfeats = 10
 x = rand(Float32, nfeats, nobs)
 feature_names = "var_" .* string.(1:nobs)
 
