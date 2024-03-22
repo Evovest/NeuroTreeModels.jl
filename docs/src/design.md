@@ -21,7 +21,7 @@ A NeuroTree operator acts as collection of complete binary trees, ie. trees with
 
 To introduce the implementation of a NeuroTree, we first get back to the architecture of a basic decision tree.
 
-![decision-tree](/decision-tree.png)
+![decision-tree](assets/decision-tree.png)
 
 The above is a binary decision tree of `depth` 2. 
 
@@ -36,7 +36,7 @@ By relaxing these hard conditions into soft ones, the mask takes the form of a p
 
 The following illustrate how a basic decision tree is represented as a single differentiable tree within NeuroTree:
 
-![decision-tree](/neurotree.png)
+![decision-tree](assets/neurotree.png)
 
 ### Node weights
 
