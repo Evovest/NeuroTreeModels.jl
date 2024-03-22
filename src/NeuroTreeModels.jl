@@ -34,5 +34,4 @@ include("entmax.jl")
 include("fit.jl")
 include("MLJ.jl")
 
-
 end # module

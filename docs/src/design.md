@@ -4,11 +4,10 @@
 
 This work introduces `NeuroTree` a differentiable binary tree operator adapted for the treatment of tabular data. 
 
-- Address the shortcoming of traditional trees greediness: all node and leaves are learned simultaneously. It provides the ability to learn an optimal configuration across all of the tree levels. 
-The notion extent also to the collection of trees that are simultaneously learned.
+- Address the shortcoming of traditional trees greediness: all node and leaves are learned simultaneously. It provides the ability to learn an optimal configuration across all the tree levels. The notion extent also to the collection of trees that are simultaneously learned.
 
 - Extend the notion of forest/bagging and boosting. 
-    - Although the predictions from the all of of the trees forming a NeuroTree operator are averaged, each of the tree prediction tuned simultaneously. This is different from boosting (ex XGBoost) where each tree is learned sequentially and over the residual from previous trees. Also, unlike random forest and bagging, trees aren't learned in isolation but tuned collaboratively, resulting in predictions that account for all of the other trees predictions.
+    - Although the predictions from the all the trees forming a NeuroTree operator are averaged, each of the tree prediction is tuned simultaneously. This is different from boosting (ex XGBoost) where each tree is learned sequentially and over the residual from previous trees. Also, unlike random forest and bagging, trees aren't learned in isolation but tuned collaboratively, resulting in predictions that account for all of the other tree predictions.
 
 - General operator compatible for composition.
     - Allows integration within Flux's Chain like other standard operators from NNLib. Composition is also illustrated through the built-in StackTree layer, a residual composition of multiple NeuroTree building blocks.
@@ -16,47 +15,45 @@ The notion extent also to the collection of trees that are simultaneously learne
 - Compatible with general purpose machine learning framework.
     - MLJ integration
 
-
 ## Architecture
+
+A NeuroTree operator acts as collection of complete binary trees, ie. trees without any pruned node. To be differentiable, hence trainable using first-order gradient based methods (ex. Adam optimiser), each tree path implements a soft decision rather than a hard one like in traditional decision tree. 
 
 To introduce the implementation of a NeuroTree, we first get back to the architecture of a basic decision tree.
 
-![decision-tree](/decision-tree.png)
+![decision-tree](assets/decision-tree.png)
 
 The above is a binary decision tree of `depth` 2. 
 
 Highlighted in green is the decision path taken for a given sample. It goes into `depth` number of binary decisions, resulting in the path `node1 → node3 → leaf3`.
 
-One way to view the role of the decision nodes is to provide an index of the leaf prediction to fetch (index `3` in the figure). Such indexing view is applicable given that node routing relies a hard conditions: it's either `true` or `false`. 
+One way to view the role of the decision nodes (gray background) is to provide an index of the leaf prediction to fetch (index `3` in the figure). Such indexing view is applicable given that node routing relies on hard conditions: either `true` or `false`. 
 
-An alternative perspective that we will adopt here is that tree nodes collectively provide weights associated to each leaf. A tree prediction is the weighted sum of the leaf's value and those leaf weights.
+An alternative perspective that we adopt here is that tree nodes collectively provide weights associated to each leaf. A tree prediction becomes the weighted sum of the leaf's values and the leaf's weights.
 In regular decision trees, since all conditions are binary, leaf weights take the form of a mask. In the above example, the mask is `[0, 0, 1, 0]`.
 
-By relaxing these these hard condition into soft ones, the mask takes the form of a probability vector associated to each leaf, where `∑(leaf_weights) = 1` and where each each `leaf_weight` element is `[0, 1]`.
+By relaxing these hard conditions into soft ones, the mask takes the form of a probability vector associated to each leaf, where `∑(leaf_weights) = 1` and where each each `leaf_weight` element is `[0, 1]`. A tree prediction can be obtained with the dot product: `leaf_values' *  leaf_weights`. 
 
 The following illustrate how a basic decision tree is represented as a single differentiable tree within NeuroTree:
 
-![decision-tree](/neurotree.png)
+![decision-tree](assets/neurotree.png)
 
 ### Node weights
 
-To derive how a NeuroTree performs those soft decision, we first break down the structure of how the traditional hard decisions are taken.
-A nodes's split actually relies on 2 binary conditions:
+To illustrate how a NeuroTree derives the soft decision probability (referred to `NW1 - NW3` in the above figure), we first break down how a traditional tree split condition is derived from 2 underlying decisions:
 
-### 1. Selection of the feature on which to perform the condition
+1. *Selection of the feature on which to perform the condition*.
+Such selection can be represented as the application of a binary mask where all elements are set to `false` except for that single selected feature where it's set to `true`.  
 
-The selection of a feature out of the selected ones
-In NeuroTree, these hard decisions are translated into soft, differentiable ones:  
-    1. 
+2. *Selection of the condition's threshold value*.
+For a given observation, if the selected feature's value is below that threshold, then the node decision is set to `false` (pointing to left child), and `true` otherwise (pooinnting to right child).  
 
-### 2. Selection of the condition's threshold value
-
-A NeuroTree operator acts as collection of complete binary trees, ie. trees without any pruned node. In order to be differentiable, hence trainable using gradient based methods such as Adam, each tree path implements a soft decision rather than a hard one like in traditional decision tree. 
+In NeuroTree, these 2 hard steps are translated into soft, differentiable ones. 
 
 ### Leaf weights
 
 Computing the leaf weights consists of accumulating the weights through each tree branch. It's the technically more challenging part as such computation cannot be represented as a form of matrix multiplication, unlike other common operators like `Dense`, `Conv` or `MultiHeadAttention` / `Transformer`. Performing probability accumulation though a tree index naturally leads to in-place element wise operations, which are notoriously not friendly for auto-differentiation engines. 
-Since NeuroTree was intended to integrate with the Flux.jl ecosystem, Zygote.jl acts as the underlying AD, the approach used was to to manually implement `backward` / `adjoint` of the terminal leaf function and instruct the AD to use that custom rule rather than attempt to differentiate a non-AD compliant function. 
+Since NeuroTree was intended to integrate with the Flux.jl ecosystem, Zygote.jl acts as the underlying AD, the approach used was to manually implement `backward` / `adjoint` of the terminal leaf function and instruct the AD to use that custom rule rather than attempt to differentiate a non-AD compliant function. 
 
 Below are the algo and actual implementation of the forward and backward function that compute the leaf weights. For brevity, the loops over each observation of the batch and each tree are omitted. Parallelism, both on CPU and GPU, is obtained through parallelization over the `tree` and `batch` dimensions. 
 
@@ -103,12 +100,10 @@ end
 
 ### Tree prediction
 
-
-
 ## Composability
 
 - StackTree
-- General operator: Chain neurotree with MLP
+- General operator: Chain `NeuroTree` with MLP
 
 ## Benchmarks
 
@@ -122,12 +117,12 @@ For each dataset and algo, the following methodology is followed:
 Source code available at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
 
 For performance assessment, benchmarks is run on the following selection of common Tabular datasets:
-- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression
-- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression 
-- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression
-- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression
-- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression
-- [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression
+- [Year](https://archive.ics.uci.edu/dataset/203/yearpredictionmsd): min squared error regression. 515,345 observations, 90 features.
+- [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression. 1,200,192 observations, 136 features.
+- [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression. 709,877 observations, 519 features.
+- [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression. 11,000,000 observations, 28 features.
+- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression. 
+- [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression. 891 observations, 7 features.
 
 Comparison is performed against the following algos (implementation in link) considered as state of the art on classification tasks:
 - [EvoTrees](https://github.com/Evovest/EvoTrees.jl)
@@ -136,7 +131,7 @@ Comparison is performed against the following algos (implementation in link) con
 - [CatBoost](https://github.com/JuliaAI/CatBoost.jl)
 - [NODE](https://github.com/manujosephv/pytorch_tabular)
 
-### Boston
+#### Boston
 
 | **model\_type** | **train\_time** | **mse** | **gini** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -146,7 +141,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 0.865           | 25.4    | 0.926    |
 | catboost        | 0.0511          | **13.9**| 0.946    |
 
-### Titanic
+#### Titanic
 
 | **model\_type** | **train\_time** | **logloss** | **accuracy** |
 |:---------------:|:---------------:|:-----------:|:------------:|
@@ -156,7 +151,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 0.615           | 0.390       | **0.836**    |
 | catboost        | 0.0326          | 0.388       | **0.836**    |
 
-### Year
+#### Year
 
 | **model\_type** | **train\_time** | **mse** | **gini** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -166,7 +161,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 8.11            | 80.3    | 0.624    |
 | catboost        | 80.0            | 79.2    | 0.635    |
 
-### MSRank
+#### MSRank
 
 | **model\_type** | **train\_time** | **mse** | **ndcg** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -176,7 +171,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 37.5            |**0.553**| 0.503    |
 | catboost        | 15.1            | 0.558   | 0.497    |
 
-### Yahoo
+#### Yahoo
 
 | **model\_type** | **train\_time** | **mse** | **ndcg** |
 |:---------------:|:---------------:|:-------:|:--------:|
@@ -186,7 +181,7 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 244.0           |**0.540**| 0.796    |
 | catboost        | 161.0           | 0.561   | 0.794    |
 
-### Higgs
+#### Higgs
 
 | **model\_type** | **train\_time** | **logloss** | **accuracy** |
 |:---------------:|:---------------:|:-----------:|:------------:|
@@ -196,6 +191,13 @@ Comparison is performed against the following algos (implementation in link) con
 | lightgbm        | 1330.0          | 0.461       | 0.779        |
 | catboost        | 7180.0          | 0.464       | 0.775        |
 
+## Discussion
+
+NeuroTreeModels can achieve top tier performance on both small (Boston) and large (Higgs) datasets. 
+Its performance trailed on the two ranking regression problems (MSRank and Yahoo). Although the large number of features is a distinguishing characteristic of the Yahoo dataset, the 136 features of MSRank are not materially different for the YEAR dataset (90 features), and on which NeuroTreeMoels outperform all other algos. Considering that no sparsity mechanism is present in the feature selection for the node conditions, datasets with a very large number of features may present a challenge. Substituting the default `tanh` activation with a sparsity inducing one such as `hardsigmoid` or `EntrOpt` has not resulted
+in improvement from the experiments. 
+
+Another potential weakness may stem from the soft nature of the decision criteria. Traditional trees can isolate the effect of a specific feature value. This can be notably meaningful in a situation where a numeric feature taking a value of 0 may carry a particular meaning (ex. missing, unknown value). Such stump the effect of a feature should be harder to pick with NeuroTree's soft condition. 
 
 ## References
 

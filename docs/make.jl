@@ -26,9 +26,6 @@ makedocs(;
     modules=[NeuroTreeModels],
     warnonly=true,
     checkdocs=:all,
-    draft=false,
-    source="src",
-    build="build",
     pages=pages,
 )
 

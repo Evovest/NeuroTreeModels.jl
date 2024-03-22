@@ -333,9 +333,9 @@ end
 A NeuroTreeModel is made of a collection of Tree, either regular `NeuroTree` or `StackTree`.
 Prediction is the sum of all the trees composing a NeuroTreeModel.
 """
-struct NeuroTreeModel{L<:LossType}
+struct NeuroTreeModel{L<:LossType,C<:Chain}
     _loss_type::Type{L}
-    chain::Chain
+    chain::C
     info::Dict{Symbol,Any}
 end
 @functor NeuroTreeModel
