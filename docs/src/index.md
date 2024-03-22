@@ -20,6 +20,9 @@ hero:
       text: Models
       link: /models
     - theme: alt
+      text: Tutorials
+      link: /tutorials-logistic-titanic.md
+    - theme: alt
       text: Source code
       link: https://github.com/Evovest/NeuroTreeModels.jl
 ---

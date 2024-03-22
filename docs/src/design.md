@@ -121,7 +121,7 @@ For performance assessment, benchmarks is run on the following selection of comm
 - [MSRank](https://www.microsoft.com/en-us/research/project/mslr/): ranking problem with min squared error regression. 1,200,192 observations, 136 features.
 - [YahooRank](https://webscope.sandbox.yahoo.com/): ranking problem with min squared error regression. 709,877 observations, 519 features.
 - [Higgs](https://archive.ics.uci.edu/dataset/280/higgs): 2-level classification with logistic regression. 11,000,000 observations, 28 features.
-- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression. 
+- [Boston Housing](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.BostonHousing): min squared error regression. 506 observations, 13 features.
 - [Titanic](https://juliaml.github.io/MLDatasets.jl/stable/datasets/misc/#MLDatasets.Titanic): 2-level classification with logistic regression. 891 observations, 7 features.
 
 Comparison is performed against the following algos (implementation in link) considered as state of the art on classification tasks:
