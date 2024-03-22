@@ -11,7 +11,7 @@
     "docs:build": "vitepress build build/.documenter",
     "docs:preview": "vitepress preview build/.documenter"
   },
-  "resolutions": {
+  "overrides": {
     "rollup": "npm:@rollup/wasm-node"
   }
 }
