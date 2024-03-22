@@ -33,7 +33,21 @@ export default defineConfig({
         detailedView: true
       }
     },
-    nav: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'Quick start', link: '/quick-start' },
+      { text: 'Design', link: '/design' },
+      { text: 'Models', link: '/models' },
+      { text: 'API', link: '/API' },
+      {
+        text: 'Tutorials',
+        items: [
+          { text: 'Regression', link: '/tutorials-regression-boston' },
+          { text: 'Logistic', link: '/tutorials-logistic-titanic' },
+          { text: 'Classification', link: '/tutorials-classification-iris' },
+        ]
+      }
+    ],
     sidebar: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
     editLink: 'REPLACE_ME_DOCUMENTER_VITEPRESS',
     socialLinks: [

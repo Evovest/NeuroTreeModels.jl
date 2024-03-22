@@ -6,7 +6,7 @@ hero:
   text: "NeuroTreeModels.jl"
   tagline: Differentiable tree-based models for tabular data
   image:
-    src: /evo-chevron.png
+    src: /logo.png
     alt: Evovest
   
   actions:
