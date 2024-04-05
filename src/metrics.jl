@@ -65,6 +65,50 @@ end
 
 
 """
+    logloss(x, y; agg=mean)
+    logloss(x, y, w; agg=mean)
+    logloss(x, y, w, offset; agg=mean)
+"""
+function logloss(m, x, y; agg=mean)
+    p = m(x)
+    metric = agg((1 .- y) .* p .- logσ.(p))
+    return metric
+end
+function logloss(m, x, y, w; agg=mean)
+    p = m(x)
+    metric = agg(((1 .- y) .* p .- logσ.(p)) .* w)
+    return metric
+end
+function logloss(m, x, y, w, offset; agg=mean)
+    p = m(x) .+ offset
+    metric = agg(((1 .- y) .* p .- logσ.(p)) .* w)
+    return metric
+end
+
+function tweedie(m, x, y; agg=mean)
+    rho = eltype(x)(1.5)
+    p = m(x)
+    agg(2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+              p .^ (2 - rho) / (2 - rho))
+    )
+end
+function tweedie(m, x, y, w)
+    agg = mean
+    rho = eltype(x)(1.5)
+    p = m(x)
+    agg(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+                   p .^ (2 - rho) / (2 - rho))
+    )
+end
+function tweedie(m, x, y, w, offset; agg=mean)
+    rho = eltype(x)(1.5)
+    p = m(x) .+ offset
+    agg(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+                   p .^ (2 - rho) / (2 - rho))
+    )
+end
+
+"""
     mlogloss(x, y; agg=mean)
     mlogloss(x, y, w; agg=mean)
     mlogloss(x, y, w, offset; agg=mean)
@@ -141,6 +185,7 @@ const metric_dict = Dict(
     :mse => mse,
     :mae => mae,
     :logloss => logloss,
+    :tweedie => tweedie,
     :mlogloss => mlogloss,
     :gaussian_mle => gaussian_mle,
 )
@@ -148,6 +193,7 @@ const metric_dict = Dict(
 is_maximise(::typeof(mse)) = false
 is_maximise(::typeof(mae)) = false
 is_maximise(::typeof(logloss)) = false
+is_maximise(::typeof(tweedie)) = false
 is_maximise(::typeof(mlogloss)) = false
 is_maximise(::typeof(gaussian_mle)) = true
 
