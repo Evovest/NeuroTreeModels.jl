@@ -70,21 +70,21 @@ end
     mlogloss(x, y, w, offset; agg=mean)
 """
 function mlogloss(m, x, y; agg=mean)
-    p = logsoftmax(m(x); dims=2)
+    p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
     raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
     metric = agg(raw)
     return metric
 end
 function mlogloss(m, x, y, w; agg=mean)
-    p = logsoftmax(m(x); dims=2)
+    p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
     raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
     metric = agg(raw .* w)
     return metric
 end
 function mlogloss(m, x, y, w, offset; agg=mean)
-    p = logsoftmax(m(x) .+ offset; dims=2)
+    p = logsoftmax(m(x) .+ offset; dims=1)
     k = size(p, 1)
     raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
     metric = agg(raw .* w)

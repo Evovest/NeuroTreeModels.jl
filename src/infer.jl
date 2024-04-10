@@ -41,7 +41,7 @@ function infer(m::NeuroTreeModel{<:MLogLoss}, data::DL)
         push!(preds, Matrix(m(x)'))
     end
     p = vcat(preds...)
-    softmax!(p; dims=1)
+    softmax!(p; dims=2)
     return p
 end
 
