@@ -38,3 +38,7 @@ m = NeuroTreeModels.fit(
     print_every_n=10,
     early_stopping_rounds=2,
 )
+
+# Predictions depend on the number of samples in the dataset
+m(dtrain[1:5, :])[1:1,:] 
+m(dtrain[1:1, :])[1:1,:]
