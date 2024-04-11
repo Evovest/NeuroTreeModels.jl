@@ -36,10 +36,9 @@ end
 @testset "Classification test" begin
 
     Random.seed!(123)
-
-    df = MLDatasets.Iris().dataframe
-    df[!, :class] = categorical(df[!, :class])
-    df[!, :class] .= levelcode.(df[!, :class])
+    X, y = @load_crabs
+    df = DataFrame(X)
+    df[!, :class] .= levelcode.(y)
     target_name = "class"
     feature_names = setdiff(names(df), [target_name])
 
@@ -73,6 +72,6 @@ end
     ptrain = [argmax(x) for x in eachrow(m(dtrain))]
     peval = [argmax(x) for x in eachrow(m(deval))]
     @test mean(ptrain .== dtrain.class) > 0.95
-    mean(peval .== deval.class) > 0.95
+    @test mean(peval .== deval.class) > 0.95
 
 end

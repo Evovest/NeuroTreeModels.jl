@@ -1,7 +1,3 @@
-using StatsBase: sample
-using MLJBase
-using MLJTestInterface
-
 logit(x) = log(x / (1 - x))
 logit(x::AbstractVector) = logit.(x)
 sigmoid(x) = 1 / (1 + exp(-x))
