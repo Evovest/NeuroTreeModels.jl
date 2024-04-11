@@ -40,4 +40,4 @@ MLJTestInterface = "72560011-54dd-4dc2-94f3-c5de45b75ecd"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "CategoricalArrays", "MLDatasets", "MLJBase"]
+test = ["Test", "CategoricalArrays", "MLDatasets", "MLJTestInterface", "MLJBase"]
