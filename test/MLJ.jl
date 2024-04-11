@@ -1,24 +1,20 @@
-using StatsBase: sample
-using MLJBase
-using MLJTestInterface
-
 logit(x) = log(x / (1 - x))
 logit(x::AbstractVector) = logit.(x)
 sigmoid(x) = 1 / (1 + exp(-x))
 sigmoid(x::AbstractVector) = sigmoid.(x)
 
-# @testset "generic interface tests" begin
-#     @testset "NeuroTreeRegressor" begin
-#         failures, summary = MLJTestInterface.test(
-#             [NeuroTreeRegressor],
-#             MLJTestInterface.make_regression()...;
-#             mod=@__MODULE__,
-#             verbosity=0, # bump to debug
-#             throw=true # set to true to debug
-#         )
-#         @test isempty(failures)
-#     end
-# end
+@testset "generic interface tests" begin
+    @testset "NeuroTreeRegressor" begin
+        failures, summary = MLJTestInterface.test(
+            [NeuroTreeRegressor],
+            MLJTestInterface.make_regression()...;
+            mod=@__MODULE__,
+            verbosity=0, # bump to debug
+            throw=true # set to true to debug
+        )
+        @test isempty(failures)
+    end
+end
 
 ##################################################
 ### Regression
