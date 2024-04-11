@@ -146,7 +146,9 @@ end
 function fit_iter!(m, cache)
     loss, opts, data = cache[:loss], cache[:opts], cache[:dtrain]
     GC.gc(true)
-    CUDA.reclaim()
+    if m.info[:device] == :gpu
+        CUDA.reclaim()
+    end
     for d in data
         grads = gradient(model -> loss(model, d...), m)[1]
         Optimisers.update!(opts, m, grads)
