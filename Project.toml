@@ -1,7 +1,7 @@
 authors = ["jeremiedb <jeremie.db@evovest.com>"]
 name = "NeuroTreeModels"
 uuid = "1db4e0a5-a364-4b0c-897c-2bd5a4a3a1f2"
-version = "1.1.0"
+version = "1.1.1"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
@@ -33,7 +33,9 @@ cuDNN = "1"
 julia = "1.6"
 
 [extras]
+CategoricalArrays = "324d7699-5711-5eae-9e2f-1d82baa6b597"
+MLDatasets = "eb30cadb-4394-5ae3-aed4-317e484a6458"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "CategoricalArrays", "MLDatasets"]
