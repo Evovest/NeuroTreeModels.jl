@@ -17,9 +17,11 @@
 
 ## Installation
 
-```julia
+```julia-repl
 ] add NeuroTreeModels
 ```
+
+⚠ Compatible with Julia >= v1.9.
 
 ## Configuring a model
 
