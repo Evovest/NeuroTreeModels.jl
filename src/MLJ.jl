@@ -68,9 +68,6 @@ function MMI.predict(::NeuroTreeRegressor, fitresult, A)
   return pred
 end
 
-MMI.supports_weights(::Type{<:NeuroTreeRegressor}) = true
-
-
 # Metadata
 MMI.metadata_pkg.(
   (NeuroTreeRegressor),
