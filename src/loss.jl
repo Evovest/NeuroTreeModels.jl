@@ -31,47 +31,26 @@ function logloss(m, x, y, w, offset)
     sum(w .* ((1 .- y) .* p .- logσ.(p))) / sum(w)
 end
 
-function tweedie(m, x, y)
+function tweedie_deviance(m, x, y)
     rho = eltype(x)(1.5)
-    p = m(x)
+    p = exp.(m(x))
     mean(2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
                p .^ (2 - rho) / (2 - rho))
     )
 end
-function tweedie(m, x, y, w)
+function tweedie_deviance(m, x, y, w)
     rho = eltype(x)(1.5)
-    p = m(x)
+    p = exp.(m(x))
     sum(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
                    p .^ (2 - rho) / (2 - rho))
     ) / sum(w)
 end
-function tweedie(m, x, y, w, offset)
+function tweedie_deviance(m, x, y, w, offset)
     rho = eltype(x)(1.5)
-    p = m(x) .+ offset
+    p = exp.(m(x) .+ offset)
     sum(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
                    p .^ (2 - rho) / (2 - rho))
     ) / sum(w)
-end
-
-
-function tweedie(
-    p::AbstractMatrix{T},
-    y::AbstractVector,
-    w::AbstractVector,
-    eval::AbstractVector;
-    kwargs...
-) where {T}
-    @threads for i in eachindex(y)
-        pred = exp(p[1, i])
-        eval[i] =
-            w[i] *
-            2 *
-            (
-                y[i]^(2 - rho) / (1 - rho) / (2 - rho) - y[i] * pred^(1 - rho) / (1 - rho) +
-                pred^(2 - rho) / (2 - rho)
-            )
-    end
-    return sum(eval) / sum(w)
 end
 
 function mlogloss(m, x, y)
@@ -112,9 +91,9 @@ const _loss_fn_dict = Dict(
     :mse => mse,
     :mae => mae,
     :logloss => logloss,
-    :tweedie => tweedie,
     :mlogloss => mlogloss,
     :gaussian_mle => gaussian_mle,
+    :tweedie_deviance => tweedie_deviance,
 )
 
 get_loss_fn(config::NeuroTreeRegressor) = _loss_fn_dict[config.loss]

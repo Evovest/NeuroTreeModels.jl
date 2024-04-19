@@ -4,6 +4,7 @@ abstract type MAE <: LossType end
 abstract type LogLoss <: LossType end
 abstract type MLogLoss <: LossType end
 abstract type GaussianMLE <: LossType end
+abstract type TweedieDeviance <: LossType end
 
 const _loss_type_dict = Dict(
     :mse => MSE,
@@ -11,6 +12,7 @@ const _loss_type_dict = Dict(
     :logloss => LogLoss,
     :mlogloss => MLogLoss,
     :gaussian_mle => GaussianMLE,
+    :tweedie_deviance => TweedieDeviance
 )
 
 mutable struct NeuroTreeRegressor <: MMI.Deterministic
