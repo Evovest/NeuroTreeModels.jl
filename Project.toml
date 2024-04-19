@@ -1,7 +1,7 @@
 authors = ["jeremiedb <jeremie.db@evovest.com>"]
 name = "NeuroTreeModels"
 uuid = "1db4e0a5-a364-4b0c-897c-2bd5a4a3a1f2"
-version = "1.1.2"
+version = "1.2.0"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
