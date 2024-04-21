@@ -1,8 +1,5 @@
 # Models
 
-```@contents
-```
-
 ## NeuroTreeRegressor
 ```@docs
 NeuroTreeRegressor
