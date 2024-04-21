@@ -73,5 +73,4 @@ const _loss_fn_dict = Dict(
     :gaussian_mle => gaussian_mle,
 )
 
-get_loss_fn(config::NeuroTreeRegressor) = _loss_fn_dict[config.loss]
-
+get_loss_fn(config::NeuroTypes) = _loss_fn_dict[config.loss]

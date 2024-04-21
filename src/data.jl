@@ -4,56 +4,45 @@ import Base: length, getindex
     ContainerTrain
 
 """
-struct ContainerTrain{D<:AbstractDataFrame}
-    df::D
-    feature_names::Vector{Symbol}
-    target_name::String
-    weight_name::Union{Symbol,Nothing}
-    offset_name::Union{Symbol,Vector{Symbol},Nothing}
+struct ContainerTrain{A<:AbstractMatrix,B<:AbstractVector,C,D}
+    x::A
+    y::B
+    w::C
+    offset::D
 end
 
-function ContainerTrain(
-    df;
-    feature_names::Vector{Symbol},
-    target_name,
-    weight_name=nothing,
-    offset_name=nothing)
+length(data::ContainerTrain) = size(data.x, 2)
 
-    container = ContainerTrain(
-        df,
-        feature_names,
-        target_name,
-        weight_name,
-        offset_name)
-
-    return container
+function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:Nothing,D<:Nothing}
+    x = data.x[:, idx]
+    y = data.y[idx]
+    return (x, y)
+end
+function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:Nothing}
+    x = data.x[:, idx]
+    y = data.y[idx]
+    w = data.w[idx]
+    return (x, y, w)
+end
+function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:AbstractVector}
+    x = data.x[:, idx]
+    y = data.y[idx]
+    w = data.w[idx]
+    offset = data.offset[idx]
+    return (x, y, w, offset)
+end
+function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:AbstractMatrix}
+    x = data.x[:, idx]
+    y = data.y[idx]
+    w = data.w[idx]
+    offset = data.offset[:, idx]
+    return (x, y, w, offset)
 end
 
-length(data::ContainerTrain{<:AbstractDataFrame}) = nrow(data.df)
-
-function getindex(data::ContainerTrain{<:AbstractDataFrame}, idx::AbstractVector)
-    df = view(data.df, idx, :)
-    x = Matrix{Float32}(Matrix{Float32}(select(df, data.feature_names))')
-    y = Float32.(df[!, data.target_name])
-    if isnothing(data.weight_name) && isnothing(data.offset_name)
-        return (x, y)
-    elseif isnothing(data.offset_name)
-        w = Float32.(df[!, data.weight_name])
-        return (x, y, w)
-    elseif isnothing(data.weight_name)
-        w = ones(Float32, length(y))
-        isa(data.offset_name, String) ? offset = Float32.(df[!, data.offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
-        return (x, y, w, offset)
-    else
-        w = Float32.(df[!, data.weight_name])
-        isa(data.offset_name, String) ? offset = Float32.(df[!, data.offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
-        return (x, y, w, offset)
-    end
-end
 
 function get_df_loader_train(
     df::AbstractDataFrame;
-    feature_names::Vector{Symbol},
+    feature_names,
     target_name,
     weight_name=nothing,
     offset_name=nothing,
@@ -61,10 +50,27 @@ function get_df_loader_train(
     shuffle=true,
     device=:cpu)
 
-    container = ContainerTrain(df; feature_names, target_name, weight_name, offset_name)
+    feature_names = Symbol.(feature_names)
+    x = Matrix{Float32}(Matrix{Float32}(select(df, feature_names))')
+
+    if eltype(df[!, target_name]) <: CategoricalValue
+        y = UInt32.(CategoricalArrays.levelcode.(df[!, target_name]))
+    else
+        y = Float32.(df[!, target_name])
+    end
+
+    w = isnothing(weight_name) ? nothing : Float32.(df[!, weight_name])
+
+    offset = if isnothing(offset_name)
+        nothing
+    else
+        isa(offset_name, String) ? Float32.(df[!, offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
+    end
+
+    container = ContainerTrain(x, y, w, offset)
     batchsize = min(batchsize, length(container))
     dtrain = DataLoader(container; shuffle, batchsize, partial=true, parallel=false)
-    if Symbol(device) == :gpu
+    if device == :gpu
         return CuIterator(dtrain)
     else
         return dtrain
@@ -76,31 +82,26 @@ end
     ContainerInfer
 
 """
-struct ContainerInfer{D<:AbstractDataFrame}
-    df::D
-    feature_names::Vector{Symbol}
-    offset_name::Union{Symbol,Nothing}
+struct ContainerInfer{A<:AbstractMatrix,D}
+    x::A
+    offset::D
 end
 
-function ContainerInfer(
-    df;
-    feature_names::Vector{Symbol},
-    offset_name=nothing)
+length(data::ContainerInfer) = size(data.x, 2)
 
-    container = ContainerInfer(
-        df,
-        feature_names,
-        offset_name)
-
-    return container
-end
-
-length(data::ContainerInfer{<:AbstractDataFrame}) = nrow(data.df)
-
-function getindex(data::ContainerInfer{<:AbstractDataFrame}, idx::AbstractVector)
-    df = view(data.df, idx, :)
-    x = Matrix{Float32}(Matrix{Float32}(select(df, data.feature_names))')
+function getindex(data::ContainerInfer{A,D}, idx::AbstractVector) where {A,D<:Nothing}
+    x = data.x[:, idx]
     return x
+end
+function getindex(data::ContainerTrain{A,D}, idx::AbstractVector) where {A,D<:AbstractVector}
+    x = data.x[:, idx]
+    offset = data.offset[idx]
+    return (x, offset)
+end
+function getindex(data::ContainerTrain{A,D}, idx::AbstractVector) where {A,D<:AbstractMatrix}
+    x = data.x[:, idx]
+    offset = data.offset[:, idx]
+    return (x, offset)
 end
 
 function get_df_loader_infer(
@@ -111,10 +112,18 @@ function get_df_loader_infer(
     device=:cpu)
 
     feature_names = Symbol.(feature_names)
-    container = ContainerInfer(df; feature_names, offset_name)
+    x = Matrix{Float32}(Matrix{Float32}(select(df, feature_names))')
+
+    offset = if isnothing(offset_name)
+        nothing
+    else
+        isa(offset_name, String) ? Float32.(df[!, offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
+    end
+
+    container = ContainerInfer(x, offset)
     batchsize = min(batchsize, length(container))
     dinfer = DataLoader(container; shuffle=false, batchsize, partial=true, parallel=false)
-    if Symbol(device) == :gpu
+    if device == :gpu
         return CuIterator(dinfer)
     else
         return dinfer
