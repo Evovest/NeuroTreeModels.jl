@@ -1,48 +1,52 @@
 function init(
-    config::NeuroTreeRegressor,
+    config::NeuroTypes,
     df::AbstractDataFrame;
     feature_names,
     target_name,
     weight_name=nothing,
-    offset_name=nothing)
+    offset_name=nothing,
+    device=:cpu,
+)
 
     batchsize = config.batchsize
-    feature_names = Symbol.(feature_names)
-    if config.device == :gpu
-        device = Flux.gpu
-        CUDA.device!(config.gpuID)
-    else
-        device = Flux.cpu
-    end
-
-    dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, weight_name, offset_name, batchsize)
-    (config.device == :gpu) && (dtrain = CuIterator(dtrain))
-
     nfeats = length(feature_names)
     loss = get_loss_fn(config)
     L = get_loss_type(config)
-    chain = get_model_chain(L; config, nfeats)
+
+    target_levels = nothing
+    target_isordered = false
+    outsize = 1
+    if L <: MLogLoss
+        eltype(df[!, target_name]) <: CategoricalValue || error("Target variable `$target_name` must have its elements `<: CategoricalValue`")
+        target_levels = CategoricalArrays.levels(df[!, target_name])
+        target_isordered = isordered(df[!, target_name])
+        outsize = length(target_levels)
+    end
+    dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, weight_name, offset_name, batchsize, device)
+
+    chain = get_model_chain(L; config, nfeats, outsize)
     info = Dict(
-        :device => config.device,
+        :device => device,
         :nrounds => 0,
-        :feature_names => feature_names
-    )
+        :feature_names => feature_names,
+        :target_levels => target_levels,
+        :target_isordered => target_isordered)
     m = NeuroTreeModel(L, chain, info)
-    if config.device == :gpu
+    if device == :gpu
         m = m |> gpu
     end
 
     optim = OptimiserChain(NAdam(config.lr), WeightDecay(config.wd))
     opts = Optimisers.setup(optim, m)
 
-    cache = (dtrain=dtrain, loss=loss, opts=opts, device=device, info=info)
+    cache = (dtrain=dtrain, loss=loss, opts=opts, info=info)
     return m, cache
 end
 
 
 """
     function fit(
-        config::NeuroTreeRegressor,
+        config::NeuroTypes,
         dtrain;
         feature_names,
         target_name,
@@ -53,15 +57,16 @@ end
         print_every_n=9999,
         early_stopping_rounds=9999,
         verbosity=1,
-        return_logger=false
+        device=:cpu,
+        gpuID=0,
     )
 
 Training function of NeuroTreeModels' internal API.
 
 # Arguments
 
-- `config::NeuroTreeRegressor`
-- `dtrain`: Must be a `AbstractDataFrame`  
+- `config::NeuroTypes`
+- `dtrain`: Must be `<:AbstractDataFrame`  
 
 # Keyword arguments
 
@@ -79,11 +84,12 @@ Training function of NeuroTreeModels' internal API.
 - `print_every_n=9999`
 - `early_stopping_rounds=9999`
 - `verbosity=1`
-- `return_logger=false`
+- `device=:cpu`: device on which to perform the computation, either `:cpu` or `:gpu`
+- `gpuID=0`: gpu device to use, only relveant if `device = :gpu` 
 
 """
 function fit(
-    config::NeuroTreeRegressor,
+    config::NeuroTypes,
     dtrain;
     feature_names,
     target_name,
@@ -94,28 +100,33 @@ function fit(
     print_every_n=9999,
     early_stopping_rounds=9999,
     verbosity=1,
-    return_logger=false
+    device=:cpu,
+    gpuID=0,
 )
 
-    feature_names = Symbol.(feature_names)
-    if config.device == :gpu
-        CUDA.device!(config.gpuID)
+    device = Symbol(device)
+    if device == :gpu
+        CUDA.device!(gpuID)
     end
 
-    # initialize callback and logger if tracking eval data
+    feature_names = Symbol.(feature_names)
+    target_name = Symbol(target_name)
+    weight_name = isnothing(weight_name) ? nothing : Symbol(weight_name)
+    offset_name = isnothing(offset_name) ? nothing : Symbol(offset_name)
     metric = isnothing(metric) ? nothing : Symbol(metric)
+
+    m, cache = init(config, dtrain; feature_names, target_name, weight_name, offset_name, device)
+
+    # initialize callback and logger if tracking eval data
     logging_flag = !isnothing(metric) && !isnothing(deval)
     any_flag = !isnothing(metric) || !isnothing(deval)
     if !logging_flag && any_flag
         @warn "For logger and eval metric to be tracked, `metric` and `deval` must both be provided."
     end
-    logger = Dict[]
+
     logger = nothing
-
-    m, cache = init(config, dtrain; feature_names, target_name, weight_name, offset_name)
-
     if logging_flag
-        cb = CallBack(config, deval; metric, feature_names, target_name, weight_name, offset_name)
+        cb = CallBack(config, deval; metric, feature_names, target_name, weight_name, offset_name, device)
         logger = init_logger(; metric, early_stopping_rounds)
         cb(logger, 0, m)
         (verbosity > 0) && @info "Init training" metric = logger[:metrics][end]
@@ -136,11 +147,8 @@ function fit(
         end
     end
 
-    if return_logger
-        return (m, logger)
-    else
-        return m
-    end
+    m.info[:logger] = logger
+    return m
 end
 
 function fit_iter!(m, cache)

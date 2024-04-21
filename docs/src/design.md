@@ -42,7 +42,7 @@ The following illustrate how a basic decision tree is represented as a single di
 
 To illustrate how a NeuroTree derives the soft decision probability (referred to `NW1 - NW3` in the above figure), we first break down how a traditional tree split condition is derived from 2 underlying decisions:
 
-1. *Selection of the feature on which to perform the condition*.
+1. *Selection of the feature on which to apply the condition*.
 Such selection can be represented as the application of a binary mask where all elements are set to `false` except for that single selected feature where it's set to `true`.  
 
 2. *Selection of the condition's threshold value*.

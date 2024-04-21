@@ -94,7 +94,6 @@ target_name = "y"
 # training
 #####################################
 config = NeuroTreeRegressor(
-    device=:gpu,
     loss=:logloss,
     nrounds=400,
     actA=:identity,
@@ -102,7 +101,6 @@ config = NeuroTreeRegressor(
     scaler=true,
     depth=4,
     ntrees=256,
-    outsize=1,
     hidden_size=1,
     stack_size=1,
     batchsize=1024,
@@ -110,7 +108,7 @@ config = NeuroTreeRegressor(
     lr=3e-4,
 )
 
-@time m, logger = NeuroTreeModels.fit(
+@time m = NeuroTreeModels.fit(
     config,
     dtrain;
     deval,
@@ -119,7 +117,7 @@ config = NeuroTreeRegressor(
     print_every_n=5,
     early_stopping_rounds=3,
     metric=:logloss,
-    return_logger=true
+    device=:gpu,
 );
 
 dinfer = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
