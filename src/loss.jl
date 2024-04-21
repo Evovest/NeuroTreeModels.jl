@@ -56,17 +56,17 @@ end
 function mlogloss(m, x, y)
     p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
-    mean(-sum(onehotbatch(y, 1:k) .* p; dims=1))
+    mean(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1))
 end
 function mlogloss(m, x, y, w)
     p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
-    sum(-sum(onehotbatch(y, 1:k) .* p; dims=1) .* w) / sum(w)
+    sum(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1) .* w) / sum(w)
 end
 function mlogloss(m, x, y, w, offset)
     p = logsoftmax(m(x) .+ offset; dims=1)
     k = size(p, 1)
-    sum(-sum(onehotbatch(y, 1:k) .* p; dims=1) .* w) / sum(w)
+    sum(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1) .* w) / sum(w)
 end
 
 gaussian_mle_loss(μ::AbstractVector{T}, σ::AbstractVector{T}, y::AbstractVector{T}) where {T} =

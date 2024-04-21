@@ -78,12 +78,10 @@ config = NeuroTreeRegressor(
     return_logger=true
 );
 
-dinfer_eval = NeuroTreeModels.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);
-p_eval = m(dinfer_eval);
+p_eval = m(deval);
 mse_eval = mean((p_eval .- deval.y_raw) .^ 2)
 @info "MSE - deval" mse_eval
 
-dinfer_test = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
-p_test = m(dinfer_test);
+p_test = m(dtest);
 mse_test = mean((p_test .- dtest.y_raw) .^ 2)
 @info "MSE - dtest" mse_test

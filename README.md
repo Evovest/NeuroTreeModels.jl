@@ -17,7 +17,7 @@
 
 ## Installation
 
-```julia-repl
+```julia
 ] add NeuroTreeModels
 ```
 
