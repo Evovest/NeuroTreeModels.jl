@@ -96,5 +96,4 @@ const _loss_fn_dict = Dict(
     :tweedie_deviance => tweedie_deviance,
 )
 
-get_loss_fn(config::NeuroTreeRegressor) = _loss_fn_dict[config.loss]
-
+get_loss_fn(config::NeuroTypes) = _loss_fn_dict[config.loss]

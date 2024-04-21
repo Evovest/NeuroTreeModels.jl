@@ -1,218 +1,3 @@
-abstract type LossType end
-abstract type MSE <: LossType end
-abstract type MAE <: LossType end
-abstract type LogLoss <: LossType end
-abstract type MLogLoss <: LossType end
-abstract type GaussianMLE <: LossType end
-abstract type TweedieDeviance <: LossType end
-
-const _loss_type_dict = Dict(
-    :mse => MSE,
-    :mae => MAE,
-    :logloss => LogLoss,
-    :mlogloss => MLogLoss,
-    :gaussian_mle => GaussianMLE,
-    :tweedie_deviance => TweedieDeviance
-)
-
-mutable struct NeuroTreeRegressor <: MMI.Deterministic
-    loss::Symbol
-    nrounds::Int
-    lr::Float32
-    wd::Float32
-    batchsize::Int
-    actA::Symbol
-    outsize::Int
-    depth::Int
-    ntrees::Int
-    hidden_size::Int
-    stack_size::Int
-    init_scale::Float32
-    MLE_tree_split::Bool
-    rng::Any
-    device::Symbol
-    gpuID::Int
-end
-
-"""
-  NeuroTreeRegressor(;kwargs...)
-
-A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl](https://github.com/Evovest/NeuroTreeModels.jl), and implementing both an internal API and the MLJ model interface.
-
-# Hyper-parameters
-
-- `loss=:mse`:              Loss to be be minimized during training. One of:
-  - `:mse`
-  - `:mae`
-  - `:logloss`
-  - `:mlogloss`
-  - `:gaussian_mle`
-- `nrounds=10`:             Max number of rounds (epochs).
-- `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
-- `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
-- `batchsize=2048`:         Batch size.
-- `actA=:tanh`:             Activation function applied to each of input variable for determination of split node weight. Can be one of:
-    - `:tanh`
-    - `:identity`
-- `outsize=1`:              Number of predictions returned by the model. Typically only used for classification tasks and set to the number of target levels / classes.
-- `depth=6`:            Depth of a tree. Must be >= 1. A tree of depth 1 has 2 prediction leaf nodes. A complete tree of depth N contains `2^N` terminal leaves and `2^N - 1` split nodes.
-  Compute cost is proportional to `2^depth`. Typical optimal values are in the 3 to 5 range.
-- `ntrees=64`:              Number of trees (per stack).
-- `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
-- `stack_size=1`:           Number of stacked NeuroTree blocks.
-- `init_scale=1.0`:         Scaling factor applied to the predictions weights. Values in the `]0, 1]` short result in best performance. 
-- `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
-- `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
-- `device=:cpu`:            Device to use. Either `:cpu` or `:gpu` (recommended as it improves significantly the training speed). 
-- `gpuID=0`:                ID of the GPU to use for training.
-
-# Internal API
-
-Do `config = NeuroTreeRegressor()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in NeuroTreeRegressor(loss=...).
-
-## Training model
-
-A model is trained using [`fit`](@ref):
-
-```julia
-m = fit(config, dtrain; feature_names, target_name, kwargs...)
-```
-
-## Inference
-
-Models act as a functor. returning predictions when called as a function with features as argument:
-
-```julia
-m(data)
-```
-
-# MLJ Interface
-
-From MLJ, the type can be imported using:
-
-```julia
-NeuroTreeRegressor = @load NeuroTreeRegressor pkg=NeuroTreeModels
-```
-
-Do `model = NeuroTreeRegressor()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeRegressor(loss=...)`.
-
-## Training model
-
-In MLJ or MLJBase, bind an instance `model` to data with
-    `mach = machine(model, X, y)` where
-- `X`: any table of input features (eg, a `DataFrame`) whose columns
-  each have one of the following element scitypes: `Continuous`,
-  `Count`, or `<:OrderedFactor`; check column scitypes with `schema(X)`
-- `y`: is the target, which can be any `AbstractVector` whose element
-  scitype is `<:Continuous`; check the scitype
-  with `scitype(y)`
-
-Train the machine using `fit!(mach, rows=...)`.
-
-## Operations
-
-- `predict(mach, Xnew)`: return predictions of the target given
-  features `Xnew` having the same scitype as `X` above.
-
-## Fitted parameters
-
-The fields of `fitted_params(mach)` are:
-  - `:fitresult`: The `NeuroTreeModel` object.
-
-## Report
-
-The fields of `report(mach)` are:
-  - `:features`: The names of the features encountered in training.
-
-# Examples
-
-## Internal API
-
-```julia
-using NeuroTreeModels, DataFrames
-config = NeuroTreeRegressor(depth=5, nrounds=10)
-nobs, nfeats = 1_000, 5
-dtrain = DataFrame(randn(nobs, nfeats), :auto)
-dtrain.y = rand(nobs)
-feature_names, target_name = names(dtrain, r"x"), "y"
-m = fit(config, dtrain; feature_names, target_name)
-p = m(dtrain)
-```
-
-## MLJ Interface
-
-```julia
-using MLJBase, NeuroTreeModels
-m = NeuroTreeRegressor(depth=5, nrounds=10)
-X, y = @load_boston
-mach = machine(m, X, y) |> fit!
-p = predict(mach, X)
-```
-"""
-function NeuroTreeRegressor(; kwargs...)
-
-    # defaults arguments
-    args = Dict{Symbol,Any}(
-        :loss => :mse,
-        :nrounds => 10,
-        :lr => 1.0f-2,
-        :wd => 0.0f0,
-        :batchsize => 2048,
-        :actA => :tanh,
-        :outsize => 1,
-        :depth => 4,
-        :ntrees => 64,
-        :hidden_size => 1,
-        :stack_size => 1,
-        :init_scale => 0.1,
-        :MLE_tree_split => false,
-        :rng => 123,
-        :device => :cpu,
-        :gpuID => 0,
-    )
-
-    args_ignored = setdiff(keys(kwargs), keys(args))
-    args_ignored_str = join(args_ignored, ", ")
-    length(args_ignored) > 0 &&
-        @info "Following $(length(args_ignored)) provided arguments will be ignored: $(args_ignored_str)."
-
-    args_default = setdiff(keys(args), keys(kwargs))
-    args_default_str = join(args_default, ", ")
-    length(args_default) > 0 &&
-        @info "Following $(length(args_default)) arguments were not provided and will be set to default: $(args_default_str)."
-
-    args_override = intersect(keys(args), keys(kwargs))
-    for arg in args_override
-        args[arg] = kwargs[arg]
-    end
-
-    args[:rng] = mk_rng(args[:rng])
-
-    config = NeuroTreeRegressor(
-        Symbol(args[:loss]),
-        args[:nrounds],
-        Float32(args[:lr]),
-        Float32(args[:wd]),
-        args[:batchsize],
-        Symbol(args[:actA]),
-        args[:outsize],
-        args[:depth],
-        args[:ntrees],
-        args[:hidden_size],
-        args[:stack_size],
-        args[:init_scale],
-        args[:MLE_tree_split],
-        args[:rng],
-        Symbol(args[:device]),
-        args[:gpuID],
-    )
-
-    return config
-end
-
-get_loss_type(config::NeuroTreeRegressor) = _loss_type_dict[config.loss]
 
 struct NeuroTree{W,B,P}
     w::W
@@ -247,7 +32,8 @@ end
 dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
 
 """
-    NeuroTree
+    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.0)
+    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1.0)
 
 Initialization of a NeuroTree.
 """
@@ -329,7 +115,6 @@ end
 #     return p
 # end
 
-
 """
     NeuroTreeModel
 A NeuroTreeModel is made of a collection of Tree, either regular `NeuroTree` or `StackTree`.
@@ -369,21 +154,21 @@ const _act_dict = Dict(
     :hardsigmoid => hardsigmoid
 )
 
-function get_model_chain(L; config, nfeats)
+function get_model_chain(L; config, nfeats, outsize)
 
     if L <: GaussianMLE && config.MLE_tree_split
         chain = Chain(
             BatchNorm(nfeats),
             Parallel(
                 vcat,
-                StackTree(nfeats => config.outsize;
+                StackTree(nfeats => outsize;
                     depth=config.depth,
                     ntrees=config.ntrees,
                     stack_size=config.stack_size,
                     hidden_size=config.hidden_size,
                     actA=_act_dict[config.actA],
                     init_scale=config.init_scale),
-                StackTree(nfeats => config.outsize;
+                StackTree(nfeats => outsize;
                     depth=config.depth,
                     ntrees=config.ntrees,
                     stack_size=config.stack_size,
@@ -393,7 +178,7 @@ function get_model_chain(L; config, nfeats)
             )
         )
     else
-        outsize = L <: GaussianMLE ? 2 * config.outsize : config.outsize
+        outsize = L <: GaussianMLE ? 2 * outsize : outsize
         chain = Chain(
             BatchNorm(nfeats),
             StackTree(nfeats => outsize;

@@ -64,7 +64,6 @@ Then, we use [`NeuroTreeModels.fit`](@ref) to train a boosted tree model. We pas
 
 ```julia
 config = NeuroTreeRegressor(
-    device=:cpu,
     loss=:logloss,
     nrounds=400,
     depth=4,
@@ -80,6 +79,7 @@ m = NeuroTreeModels.fit(
     metric=:logloss,
     print_every_n=10,
     early_stopping_rounds=2,
+    device=:cpu
 )
 ```
 
