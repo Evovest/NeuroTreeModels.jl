@@ -47,11 +47,9 @@ deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
 config = NeuroTreeRegressor(
-    device=:gpu,
     loss=:gaussian_mle,
     actA=:identity,
     nrounds=200,
-    outsize=1,
     depth=4,
     ntrees=32,
     hidden_size=8,
@@ -62,7 +60,7 @@ config = NeuroTreeRegressor(
     lr=1e-3,
 )
 
-@time m, logger = NeuroTreeModels.fit(
+@time m = NeuroTreeModels.fit(
     config,
     dtrain;
     deval,
@@ -71,7 +69,7 @@ config = NeuroTreeRegressor(
     print_every_n=5,
     early_stopping_rounds=2,
     metric=:gaussian_mle,
-    return_logger=true
+    device=:gpu
 );
 
 # dinfer_eval = NeuroTrees.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);
