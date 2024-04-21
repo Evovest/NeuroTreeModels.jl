@@ -31,45 +31,6 @@ for d in deval
     @info size(d)
 end
 
-<<<<<<< HEAD
-rand(2,3,4)
-
-struct S5{N}
-    b
-end
-s = S5{1}(rand(3))
-
-struct S6{N}
-    N
-    b
-end
-s = S6{1}(1, rand(3))
-typeof(s)
-s.N
-s = S6(1, rand(3))
-S6(outsize::Int, vec) = S6{outsize}(outsize, vec)
-s = S6(1, rand(3))
-typeof(s)
-
-struct S7{N,T}
-    N
-    b::T
-end
-S7(outsize, vec) = S7{outsize, typeof(vec)}(outsize, vec)
-s = S7(2.2, rand(3))
-typeof(s)
-s.N
-
-
-struct S8{N,T}
-    N::Int
-    b::T
-end
-S8(outsize, vec) = S8{outsize, typeof(vec)}(outsize, vec)
-s = S8(2.2, rand(3))
-typeof(s)
-s.N
-=======
 ###################################
 # GPU
 ###################################
@@ -104,4 +65,3 @@ for d in dtrain
     @info size(d[1])
     @info typeof(d[2])
 end
->>>>>>> main
