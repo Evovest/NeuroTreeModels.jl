@@ -25,7 +25,9 @@
 
 ## Configuring a model
 
-A model configuration is defined with the [NeuroTreeRegressor](https://evovest.github.io/NeuroTreeModels.jl/dev/models#NeuroTreeModels.NeuroTreeRegressor) constructor:
+A model configuration is defined with on of the constructor:
+- [NeuroTreeRegressor](https://evovest.github.io/NeuroTreeModels.jl/dev/models#NeuroTreeModels.NeuroTreeRegressor)
+- [NeuroTreeClassifier](https://evovest.github.io/NeuroTreeModels.jl/dev/models#NeuroTreeModels.NeuroTreeClassifier)
 
 ```julia
 using NeuroTreeModels, DataFrames
