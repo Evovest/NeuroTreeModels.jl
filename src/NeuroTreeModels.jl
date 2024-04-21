@@ -3,6 +3,7 @@ module NeuroTreeModels
 using Base.Threads: @threads, nthreads
 import Tables
 using DataFrames
+using CategoricalArrays
 using Statistics: mean, std
 using Random
 
@@ -19,11 +20,13 @@ using ChainRulesCore
 import ChainRulesCore: rrule
 
 import MLJModelInterface as MMI
+import MLJModelInterface: fit, update, predict, schema
 
-export NeuroTreeRegressor, NeuroTreeModel, NeuroTree
+export NeuroTreeRegressor, NeuroTreeClassifier, NeuroTreeModel, NeuroTree
 
 include("data.jl")
 include("utils.jl")
+include("learners.jl")
 include("model.jl")
 include("loss.jl")
 include("metrics.jl")
@@ -33,6 +36,5 @@ include("infer.jl")
 include("entmax.jl")
 include("fit.jl")
 include("MLJ.jl")
-
 
 end # module

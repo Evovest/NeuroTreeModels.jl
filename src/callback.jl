@@ -4,7 +4,7 @@ using DataFrames
 using Statistics: mean, median
 using Flux: cpu, gpu
 using CUDA: CuIterator
-using ..NeuroTreeModels: NeuroTreeRegressor
+using ..NeuroTreeModels: NeuroTypes
 using ..NeuroTreeModels: get_df_loader_train
 using ..NeuroTreeModels.Metrics
 
@@ -21,43 +21,19 @@ function (cb::CallBack)(logger, iter, m)
     return nothing
 end
 
-# function CallBack(config::NeuroTreeRegressor; metric, x_eval, y_eval, w_eval=nothing, offset_eval=nothing)
-#     feval = metric_dict[metric]
-
-#     y_eval = ndims(y_eval) == 1 ? y_eval : y_eval'
-#     w_eval = isnothing(w_eval) ? ones(Float32, size(y_eval)[end]) : Vector{Float32}(w_eval)
-#     offset_eval = isnothing(offset_eval) ? zeros(Float32, size(y_eval)[end]) : Vector{Float32}(offset_eval)
-
-#     deval = DataLoader(
-#         (
-#             x=Matrix{Float32}(x_eval'),
-#             y=Float32.(y_eval),
-#             w=Float32.(w_eval),
-#             offset = Float32.(offset_eval),
-#         ),
-#         batchsize=config.batchsize,
-#         partial=true,
-#         shuffle=false,
-#         parallel=true,
-#         buffer=false,
-#     )
-#     (config.device == :gpu) && (deval = CuIterator(deval))
-#     return CallBack(feval, deval)
-# end
-
 function CallBack(
-    config::NeuroTreeRegressor,
+    config::NeuroTypes,
     deval::AbstractDataFrame;
     metric,
     feature_names,
     target_name,
     weight_name=nothing,
-    offset_name=nothing)
+    offset_name=nothing,
+    device=:cpu)
 
     batchsize = config.batchsize
     feval = metric_dict[metric]
-    deval = get_df_loader_train(deval; feature_names, target_name, weight_name, offset_name, batchsize)
-    (config.device == :gpu) && (deval = CuIterator(deval))
+    deval = get_df_loader_train(deval; feature_names, target_name, weight_name, offset_name, batchsize, device)
     return CallBack(feval, deval)
 end
 
@@ -96,11 +72,11 @@ end
 function agg_logger(logger_raw::Vector{Dict})
 
     _l1 = first(logger_raw)
-    best_iters =  [d[:best_iter] for d in logger_raw]
-    best_iter =  ceil(Int, median(best_iters))
+    best_iters = [d[:best_iter] for d in logger_raw]
+    best_iter = ceil(Int, median(best_iters))
 
-    best_metrics =  [d[:best_metric] for d in logger_raw]
-    best_metric =  last(best_metrics)
+    best_metrics = [d[:best_metric] for d in logger_raw]
+    best_metric = last(best_metrics)
 
     metrics = (layer=Int[], iter=Int[], metric=Float64[])
     for i in eachindex(logger_raw)

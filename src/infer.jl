@@ -41,7 +41,7 @@ function infer(m::NeuroTreeModel{<:MLogLoss}, data::DL)
         push!(preds, Matrix(m(x)'))
     end
     p = vcat(preds...)
-    softmax!(p; dims=1)
+    softmax!(p; dims=2)
     return p
 end
 
@@ -52,5 +52,15 @@ function infer(m::NeuroTreeModel{<:GaussianMLE}, data::DL)
     end
     p = vcat(preds...)
     p[:, 2] .= exp.(p[:, 2]) # reproject log(σ) into σ 
+    return p
+end
+
+function infer(m::NeuroTreeModel{L}, data::DL) where {L<:Union{TweedieDeviance}}
+    preds = Vector{Float32}[]
+    for x in data
+        push!(preds, Vector(m(x)))
+    end
+    p = vcat(preds...)
+    p .= exp.(p)
     return p
 end

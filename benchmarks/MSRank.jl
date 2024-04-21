@@ -53,11 +53,9 @@ transform!(deval, feature_names .=> percent_rank .=> feature_names)
 transform!(dtest, feature_names .=> percent_rank .=> feature_names)
 
 config = NeuroTreeRegressor(
-    device=:gpu,
     loss=:mse,
     nrounds=2,
     actA=:tanh,
-    outsize=1,
     depth=4,
     ntrees=64,
     stack_size=2,
@@ -66,7 +64,7 @@ config = NeuroTreeRegressor(
     lr=3e-4,
 )
 
-@time m, logger = NeuroTreeModels.fit(
+@time m = NeuroTreeModels.fit(
     config,
     dtrain;
     deval,
@@ -75,15 +73,13 @@ config = NeuroTreeRegressor(
     print_every_n=1,
     early_stopping_rounds=3,
     metric=:mse,
-    return_logger=true
+    device=:gpu,
 );
 
-dinfer_eval = NeuroTreeModels.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);
-p_eval = m(dinfer_eval);
+p_eval = m(deval);
 mse_eval = mean((p_eval .- deval.y_raw) .^ 2)
 @info "MSE - deval" mse_eval
 
-dinfer_test = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
-p_test = m(dinfer_test);
+p_test = m(dtest);
 mse_test = mean((p_test .- dtest.y_raw) .^ 2)
 @info "MSE - dtest" mse_test
