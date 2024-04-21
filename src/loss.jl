@@ -31,20 +31,42 @@ function logloss(m, x, y, w, offset)
     sum(w .* ((1 .- y) .* p .- logσ.(p))) / sum(w)
 end
 
+function tweedie_deviance(m, x, y)
+    rho = eltype(x)(1.5)
+    p = exp.(m(x))
+    mean(2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+               p .^ (2 - rho) / (2 - rho))
+    )
+end
+function tweedie_deviance(m, x, y, w)
+    rho = eltype(x)(1.5)
+    p = exp.(m(x))
+    sum(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+                   p .^ (2 - rho) / (2 - rho))
+    ) / sum(w)
+end
+function tweedie_deviance(m, x, y, w, offset)
+    rho = eltype(x)(1.5)
+    p = exp.(m(x) .+ offset)
+    sum(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+                   p .^ (2 - rho) / (2 - rho))
+    ) / sum(w)
+end
+
 function mlogloss(m, x, y)
     p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
-    mean(-sum(onehotbatch(y, 1:k) .* p; dims=1))
+    mean(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1))
 end
 function mlogloss(m, x, y, w)
     p = logsoftmax(m(x); dims=1)
     k = size(p, 1)
-    sum(-sum(onehotbatch(y, 1:k) .* p; dims=1) .* w) / sum(w)
+    sum(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1) .* w) / sum(w)
 end
 function mlogloss(m, x, y, w, offset)
     p = logsoftmax(m(x) .+ offset; dims=1)
     k = size(p, 1)
-    sum(-sum(onehotbatch(y, 1:k) .* p; dims=1) .* w) / sum(w)
+    sum(-sum(onehotbatch(UInt32.(y), 1:k) .* p; dims=1) .* w) / sum(w)
 end
 
 gaussian_mle_loss(μ::AbstractVector{T}, σ::AbstractVector{T}, y::AbstractVector{T}) where {T} =
@@ -71,6 +93,7 @@ const _loss_fn_dict = Dict(
     :logloss => logloss,
     :mlogloss => mlogloss,
     :gaussian_mle => gaussian_mle,
+    :tweedie_deviance => tweedie_deviance,
 )
 
 get_loss_fn(config::NeuroTypes) = _loss_fn_dict[config.loss]

@@ -54,3 +54,13 @@ function infer(m::NeuroTreeModel{<:GaussianMLE}, data::DL)
     p[:, 2] .= exp.(p[:, 2]) # reproject log(σ) into σ 
     return p
 end
+
+function infer(m::NeuroTreeModel{L}, data::DL) where {L<:Union{TweedieDeviance}}
+    preds = Vector{Float32}[]
+    for x in data
+        push!(preds, Vector(m(x)))
+    end
+    p = vcat(preds...)
+    p .= exp.(p)
+    return p
+end
