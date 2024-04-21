@@ -44,7 +44,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
   - `:logloss`
   - `:mlogloss`
   - `:gaussian_mle`
-- `nrounds=10`:             Max number of rounds (epochs).
+- `nrounds=100`:             Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
 - `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
 - `batchsize=2048`:         Batch size.
@@ -63,7 +63,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 # Internal API
 
 Do `config = NeuroTreeRegressor()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in NeuroTreeRegressor(loss=...).
+Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeRegressor(loss=:logistic, depth=5, ...)`.
 
 ## Training model
 
@@ -150,7 +150,7 @@ function NeuroTreeRegressor(; kwargs...)
   # defaults arguments
   args = Dict{Symbol,Any}(
     :loss => :mse,
-    :nrounds => 10,
+    :nrounds => 100,
     :lr => 1.0f-2,
     :wd => 0.0f0,
     :batchsize => 2048,
@@ -227,7 +227,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 
 # Hyper-parameters
 
-- `nrounds=10`:             Max number of rounds (epochs).
+- `nrounds=100`:             Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
 - `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
 - `batchsize=2048`:         Batch size.
@@ -246,7 +246,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 # Internal API
 
 Do `config = NeuroTreeClassifier()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in NeuroTreeClassifier(loss=...).
+Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeClassifier(depth=5, ...)`.
 
 ## Training model
 
@@ -283,7 +283,7 @@ In MLJ or MLJBase, bind an instance `model` to data with
   each have one of the following element scitypes: `Continuous`,
   `Count`, or `<:OrderedFactor`; check column scitypes with `schema(X)`
 - `y`: is the target, which can be any `AbstractVector` whose element
-  scitype is `<:Continuous`; check the scitype
+  scitype is `<:Finite`; check the scitype
   with `scitype(y)`
 
 Train the machine using `fit!(mach, rows=...)`.
@@ -323,7 +323,7 @@ p = m(dtrain)
 ```julia
 using MLJBase, NeuroTreeModels
 m = NeuroTreeClassifier(depth=5, nrounds=10)
-X, y = @load_boston
+X, y = @load_crabs
 mach = machine(m, X, y) |> fit!
 p = predict(mach, X)
 ```
@@ -332,7 +332,7 @@ function NeuroTreeClassifier(; kwargs...)
 
   # defaults arguments
   args = Dict{Symbol,Any}(
-    :nrounds => 10,
+    :nrounds => 100,
     :lr => 1.0f-2,
     :wd => 0.0f0,
     :batchsize => 2048,
