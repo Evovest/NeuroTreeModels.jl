@@ -21,6 +21,8 @@
 ] add NeuroTreeModels
 ```
 
+⚠ Compatible with Julia >= v1.9.
+
 ## Configuring a model
 
 A model configuration is defined with the [NeuroTreeRegressor](https://evovest.github.io/NeuroTreeModels.jl/dev/models#NeuroTreeModels.NeuroTreeRegressor) constructor:
