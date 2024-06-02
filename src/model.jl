@@ -1,12 +1,13 @@
 
-struct NeuroTree{outsize,M,V}
+struct NeuroTree{N,M,V,F}
     outsize::Int
     w::M
     b::V
     p::M
-    actA::Function
+    actA::F
 end
-NeuroTree(outsize::Int, w::M, b::V, p::M, actA::Function) where {M,V} = NeuroTree{outsize,M,V}(outsize, w, b, p, actA)
+NeuroTree(outsize::Int, w::M, b::V, p::M, actA::F) where {M,V,F} = NeuroTree{outsize,M,V,F}(outsize, w, b, p, actA)
+# NeuroTree(w::M, b::V, p::M, actA::F) where {M,V,F} = NeuroTree{M,V,F}(w, b, p, actA)
 
 @functor NeuroTree
 # Flux.trainable(m::NeuroTree) = (w=m.w, b=m.b, p=m.p)
@@ -31,23 +32,21 @@ include("leaf_weights.jl")
 #     return pred
 # end
 
-# dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
-
-function (m::NeuroTree{N,M,V})(x::M) where {N,M,V}
+function (m::NeuroTree{N,M,V,F})(x::M) where {N,M,V,F}
     # [F, B] -> [N, T, B]
     nw = node_weights(m, x)
     # [N, T, B] -> [L, T, B]
     (_, lw) = leaf_weights!(nw)
     # [L, T, B], [L, T] -> [1, T, B]
-    pred = sum(lw .* m.p, dims=1)
+    p1 = sum(lw .* m.p, dims=1)
     # reshape to keep N outputs
-    pred = reshape(pred, size(pred, 2) ÷ N, N, size(pred, 3))
-    # [P, B] aggregate over trees per output
-    pred = dropdims(mean(pred, dims=1), dims=1)
-    return pred
+    p1 = reshape(p1, size(p1, 2) ÷ N, N, size(p1, 3))
+    # # [P, B] aggregate over trees per output
+    p2 = mean(p1, dims=1)
+    p3 = dropdims(p2, dims=1)
+    # pred = dropdims(mean(p2, dims=1), dims=1)
+    return p3
 end
-
-# dot_prod_agg(lw, p) = dropdims(sum(lw .* p, dims=2), dims=2)
 
 """
     NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.0)

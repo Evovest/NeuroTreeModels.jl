@@ -2,7 +2,7 @@ using Revise
 using Random
 using CSV
 using DataFrames
-using StatsBase
+# using StatsBase
 using Statistics: mean, std
 using NeuroTreeModels
 
@@ -44,7 +44,7 @@ dtest = df_tot[(end-51630+1):end, :];
 config = NeuroTreeRegressor(
     loss=:mse,
     actA=:identity,
-    init_scale=1.0,
+    init_scale=0.1,
     nrounds=200,
     depth=4,
     ntrees=32,
