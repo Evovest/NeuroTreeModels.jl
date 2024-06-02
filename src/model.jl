@@ -1,9 +1,9 @@
 
-struct NeuroTree{W,B,P}
+struct NeuroTree{W,B,P,F<:Function}
     w::W
     b::B
     p::P
-    actA::Function
+    actA::F
 end
 
 @functor NeuroTree
@@ -19,7 +19,7 @@ end
 
 include("leaf_weights.jl")
 
-function (m::NeuroTree{W,B,P})(x::W) where {W,B,P}
+function (m::NeuroTree{W,B,P,F})(x::W) where {W,B,P,F}
     # [F, B] -> [N, T, B]
     nw = node_weights(m, x)
     # [N, T, B] -> [L, T, B]

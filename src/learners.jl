@@ -4,29 +4,31 @@ abstract type MAE <: LossType end
 abstract type LogLoss <: LossType end
 abstract type MLogLoss <: LossType end
 abstract type GaussianMLE <: LossType end
+abstract type TweedieDeviance <: LossType end
 
 const _loss_type_dict = Dict(
-    :mse => MSE,
-    :mae => MAE,
-    :logloss => LogLoss,
-    :gaussian_mle => GaussianMLE,
-    :mlogloss => MLogLoss
+  :mse => MSE,
+  :mae => MAE,
+  :logloss => LogLoss,
+  :tweedie_deviance => TweedieDeviance,
+  :gaussian_mle => GaussianMLE,
+  :mlogloss => MLogLoss
 )
 
 mutable struct NeuroTreeRegressor <: MMI.Deterministic
-    loss::Symbol
-    nrounds::Int
-    lr::Float32
-    wd::Float32
-    batchsize::Int
-    actA::Symbol
-    depth::Int
-    ntrees::Int
-    hidden_size::Int
-    stack_size::Int
-    init_scale::Float32
-    MLE_tree_split::Bool
-    rng::Any
+  loss::Symbol
+  nrounds::Int
+  lr::Float32
+  wd::Float32
+  batchsize::Int
+  actA::Symbol
+  depth::Int
+  ntrees::Int
+  hidden_size::Int
+  stack_size::Int
+  init_scale::Float32
+  MLE_tree_split::Bool
+  rng::Any
 end
 
 """
@@ -42,7 +44,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
   - `:logloss`
   - `:mlogloss`
   - `:gaussian_mle`
-- `nrounds=10`:             Max number of rounds (epochs).
+- `nrounds=100`:             Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
 - `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
 - `batchsize=2048`:         Batch size.
@@ -61,7 +63,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 # Internal API
 
 Do `config = NeuroTreeRegressor()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in NeuroTreeRegressor(loss=...).
+Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeRegressor(loss=:logistic, depth=5, ...)`.
 
 ## Training model
 
@@ -145,77 +147,77 @@ p = predict(mach, X)
 """
 function NeuroTreeRegressor(; kwargs...)
 
-    # defaults arguments
-    args = Dict{Symbol,Any}(
-        :loss => :mse,
-        :nrounds => 10,
-        :lr => 1.0f-2,
-        :wd => 0.0f0,
-        :batchsize => 2048,
-        :actA => :tanh,
-        :depth => 4,
-        :ntrees => 64,
-        :hidden_size => 1,
-        :stack_size => 1,
-        :init_scale => 0.1,
-        :MLE_tree_split => false,
-        :rng => 123,
-    )
+  # defaults arguments
+  args = Dict{Symbol,Any}(
+    :loss => :mse,
+    :nrounds => 100,
+    :lr => 1.0f-2,
+    :wd => 0.0f0,
+    :batchsize => 2048,
+    :actA => :tanh,
+    :depth => 4,
+    :ntrees => 64,
+    :hidden_size => 1,
+    :stack_size => 1,
+    :init_scale => 0.1,
+    :MLE_tree_split => false,
+    :rng => 123,
+  )
 
-    args_ignored = setdiff(keys(kwargs), keys(args))
-    args_ignored_str = join(args_ignored, ", ")
-    length(args_ignored) > 0 &&
-        @info "Following $(length(args_ignored)) provided arguments will be ignored: $(args_ignored_str)."
+  args_ignored = setdiff(keys(kwargs), keys(args))
+  args_ignored_str = join(args_ignored, ", ")
+  length(args_ignored) > 0 &&
+    @info "Following $(length(args_ignored)) provided arguments will be ignored: $(args_ignored_str)."
 
-    args_default = setdiff(keys(args), keys(kwargs))
-    args_default_str = join(args_default, ", ")
-    length(args_default) > 0 &&
-        @info "Following $(length(args_default)) arguments were not provided and will be set to default: $(args_default_str)."
+  args_default = setdiff(keys(args), keys(kwargs))
+  args_default_str = join(args_default, ", ")
+  length(args_default) > 0 &&
+    @info "Following $(length(args_default)) arguments were not provided and will be set to default: $(args_default_str)."
 
-    args_override = intersect(keys(args), keys(kwargs))
-    for arg in args_override
-        args[arg] = kwargs[arg]
-    end
+  args_override = intersect(keys(args), keys(kwargs))
+  for arg in args_override
+    args[arg] = kwargs[arg]
+  end
 
-    loss = Symbol(args[:loss])
-    loss ∉ [:mse, :mae, :logloss, :gaussian_mle] && error("The provided kwarg `loss`: $loss is not supported.")
+  loss = Symbol(args[:loss])
+  loss ∉ [:mse, :mae, :logloss, :gaussian_mle, :tweedie_deviance] && error("The provided kwarg `loss`: $loss is not supported.")
 
-    args[:rng] = mk_rng(args[:rng])
+  args[:rng] = mk_rng(args[:rng])
 
-    config = NeuroTreeRegressor(
-        args[:loss],
-        args[:nrounds],
-        Float32(args[:lr]),
-        Float32(args[:wd]),
-        args[:batchsize],
-        Symbol(args[:actA]),
-        args[:depth],
-        args[:ntrees],
-        args[:hidden_size],
-        args[:stack_size],
-        args[:init_scale],
-        args[:MLE_tree_split],
-        args[:rng]
-    )
+  config = NeuroTreeRegressor(
+    args[:loss],
+    args[:nrounds],
+    Float32(args[:lr]),
+    Float32(args[:wd]),
+    args[:batchsize],
+    Symbol(args[:actA]),
+    args[:depth],
+    args[:ntrees],
+    args[:hidden_size],
+    args[:stack_size],
+    args[:init_scale],
+    args[:MLE_tree_split],
+    args[:rng]
+  )
 
-    return config
+  return config
 end
 
 
 mutable struct NeuroTreeClassifier <: MMI.Probabilistic
-    loss::Symbol
-    nrounds::Int
-    lr::Float32
-    wd::Float32
-    batchsize::Int
-    actA::Symbol
-    depth::Int
-    ntrees::Int
-    hidden_size::Int
-    stack_size::Int
-    init_scale::Float32
-    MLE_tree_split::Bool
-    rng::Any
+  loss::Symbol
+  nrounds::Int
+  lr::Float32
+  wd::Float32
+  batchsize::Int
+  actA::Symbol
+  depth::Int
+  ntrees::Int
+  hidden_size::Int
+  stack_size::Int
+  init_scale::Float32
+  MLE_tree_split::Bool
+  rng::Any
 end
 
 """
@@ -225,7 +227,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 
 # Hyper-parameters
 
-- `nrounds=10`:             Max number of rounds (epochs).
+- `nrounds=100`:             Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
 - `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
 - `batchsize=2048`:         Batch size.
@@ -244,7 +246,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 # Internal API
 
 Do `config = NeuroTreeClassifier()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in NeuroTreeClassifier(loss=...).
+Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeClassifier(depth=5, ...)`.
 
 ## Training model
 
@@ -281,7 +283,7 @@ In MLJ or MLJBase, bind an instance `model` to data with
   each have one of the following element scitypes: `Continuous`,
   `Count`, or `<:OrderedFactor`; check column scitypes with `schema(X)`
 - `y`: is the target, which can be any `AbstractVector` whose element
-  scitype is `<:Continuous`; check the scitype
+  scitype is `<:Finite`; check the scitype
   with `scitype(y)`
 
 Train the machine using `fit!(mach, rows=...)`.
@@ -321,63 +323,63 @@ p = m(dtrain)
 ```julia
 using MLJBase, NeuroTreeModels
 m = NeuroTreeClassifier(depth=5, nrounds=10)
-X, y = @load_boston
+X, y = @load_crabs
 mach = machine(m, X, y) |> fit!
 p = predict(mach, X)
 ```
 """
 function NeuroTreeClassifier(; kwargs...)
 
-    # defaults arguments
-    args = Dict{Symbol,Any}(
-        :nrounds => 10,
-        :lr => 1.0f-2,
-        :wd => 0.0f0,
-        :batchsize => 2048,
-        :actA => :tanh,
-        :depth => 4,
-        :ntrees => 64,
-        :hidden_size => 1,
-        :stack_size => 1,
-        :init_scale => 0.1,
-        :MLE_tree_split => false,
-        :rng => 123,
-    )
+  # defaults arguments
+  args = Dict{Symbol,Any}(
+    :nrounds => 100,
+    :lr => 1.0f-2,
+    :wd => 0.0f0,
+    :batchsize => 2048,
+    :actA => :tanh,
+    :depth => 4,
+    :ntrees => 64,
+    :hidden_size => 1,
+    :stack_size => 1,
+    :init_scale => 0.1,
+    :MLE_tree_split => false,
+    :rng => 123,
+  )
 
-    args_ignored = setdiff(keys(kwargs), keys(args))
-    args_ignored_str = join(args_ignored, ", ")
-    length(args_ignored) > 0 &&
-        @info "Following $(length(args_ignored)) provided arguments will be ignored: $(args_ignored_str)."
+  args_ignored = setdiff(keys(kwargs), keys(args))
+  args_ignored_str = join(args_ignored, ", ")
+  length(args_ignored) > 0 &&
+    @info "Following $(length(args_ignored)) provided arguments will be ignored: $(args_ignored_str)."
 
-    args_default = setdiff(keys(args), keys(kwargs))
-    args_default_str = join(args_default, ", ")
-    length(args_default) > 0 &&
-        @info "Following $(length(args_default)) arguments were not provided and will be set to default: $(args_default_str)."
+  args_default = setdiff(keys(args), keys(kwargs))
+  args_default_str = join(args_default, ", ")
+  length(args_default) > 0 &&
+    @info "Following $(length(args_default)) arguments were not provided and will be set to default: $(args_default_str)."
 
-    args_override = intersect(keys(args), keys(kwargs))
-    for arg in args_override
-        args[arg] = kwargs[arg]
-    end
+  args_override = intersect(keys(args), keys(kwargs))
+  for arg in args_override
+    args[arg] = kwargs[arg]
+  end
 
-    args[:rng] = mk_rng(args[:rng])
+  args[:rng] = mk_rng(args[:rng])
 
-    config = NeuroTreeClassifier(
-        :mlogloss,
-        args[:nrounds],
-        Float32(args[:lr]),
-        Float32(args[:wd]),
-        args[:batchsize],
-        Symbol(args[:actA]),
-        args[:depth],
-        args[:ntrees],
-        args[:hidden_size],
-        args[:stack_size],
-        args[:init_scale],
-        args[:MLE_tree_split],
-        args[:rng],
-    )
+  config = NeuroTreeClassifier(
+    :mlogloss,
+    args[:nrounds],
+    Float32(args[:lr]),
+    Float32(args[:wd]),
+    args[:batchsize],
+    Symbol(args[:actA]),
+    args[:depth],
+    args[:ntrees],
+    args[:hidden_size],
+    args[:stack_size],
+    args[:init_scale],
+    args[:MLE_tree_split],
+    args[:rng],
+  )
 
-    return config
+  return config
 end
 
 const NeuroTypes = Union{NeuroTreeRegressor,NeuroTreeClassifier}

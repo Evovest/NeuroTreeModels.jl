@@ -42,7 +42,6 @@ deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
 config = NeuroTreeRegressor(
-    device=:gpu,
     loss=:mse,
     actA=:identity,
     init_scale=1.0,
@@ -51,12 +50,11 @@ config = NeuroTreeRegressor(
     ntrees=32,
     stack_size=1,
     hidden_size=1,
-    outsize=1,
     batchsize=2048,
     lr=3e-4,
 )
 
-@time m, logger = NeuroTreeModels.fit(
+@time m = NeuroTreeModels.fit(
     config,
     dtrain;
     deval,
@@ -65,7 +63,7 @@ config = NeuroTreeRegressor(
     print_every_n=5,
     early_stopping_rounds=2,
     metric=:mse,
-    return_logger=true
+    device=:gpu
 );
 
 # nfeats = length(feature_names)

@@ -21,9 +21,9 @@ config = NeuroTreeRegressor(;
 
 loss = NeuroTreeModels.get_loss_fn(config)
 L = NeuroTreeModels.get_loss_type(config)
-chain = NeuroTreeModels.get_model_chain(L; config, nfeats)
+chain = NeuroTreeModels.get_model_chain(L; config, nfeats, outsize=1)
 info = Dict(
-    :device => config.device,
+    :device => :cpu,
     :nrounds => 0,
     :feature_names => feature_names
 )
@@ -31,6 +31,8 @@ m = NeuroTreeModel(L, chain, info)
 xb = x'
 yb = y
 m(xb)
+
+@code_warntype m(xb)
 
 w = m.chain.layers[2].trees[1].w
 b = m.chain.layers[2].trees[1].b

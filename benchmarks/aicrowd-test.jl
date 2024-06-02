@@ -51,15 +51,12 @@ y_train = Vector{Float32}(df_train[:, target])
 y_eval = Vector{Float32}(df_eval[:, target])
 
 config = NeuroTreeRegressor(
-    device = :gpu,
     loss = :logloss,
     nrounds = 100,
     actA = :tanh,
     scaler = false,
-    outsize = 1,
     depth = 4,
     ntrees = 32,
-    masks = nothing,
     batchsize = 4096,
     rng = 123,
     opt = Dict("type" => "nadam", "lr" => 3e-2, "rho" => 0.9),
@@ -75,6 +72,7 @@ config = NeuroTreeRegressor(
     early_stopping_rounds = 5,
     print_every_n = 1,
     metric = :logloss,
+    device = :gpu,
 );
 
 using CUDA
