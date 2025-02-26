@@ -132,7 +132,7 @@ end
 function fit_iter!(m, cache)
     loss, opts, data = cache[:loss], cache[:opts], cache[:dtrain]
     GC.gc(true)
-    if m.info[:device] == :gpu
+    if typeof(cache[:dtrain]) <: CuIterator
         CUDA.reclaim()
     end
     for d in data

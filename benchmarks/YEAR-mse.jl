@@ -41,7 +41,9 @@ dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
-config = NeuroTreeRegressor(
+device = :gpu
+
+config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
     init_scale=1.0,
@@ -52,6 +54,8 @@ config = NeuroTreeRegressor(
     hidden_size=1,
     batchsize=2048,
     lr=3e-4,
+    early_stopping_rounds=2,
+    device
 )
 
 @time m = NeuroTreeModels.fit(
@@ -60,20 +64,17 @@ config = NeuroTreeRegressor(
     deval,
     target_name,
     feature_names,
-    print_every_n=5,
-    early_stopping_rounds=2,
-    metric=:mse,
-    device=:gpu
+    print_every_n=5
 );
 
 # nfeats = length(feature_names)
 # x = NeuroTrees.CUDA.rand(nfeats, config.batchsize);
 # m.layers[1](x)
 # m.layers[2]
-p_eval = m(deval);
+@time p_eval = m(deval; device);
 mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 @info "MSE raw - deval" mse_eval
 
-p_test = m(dtest);
+p_test = m(dtest; device);
 mse_test = mean((p_test .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 @info "MSE - dtest" mse_test

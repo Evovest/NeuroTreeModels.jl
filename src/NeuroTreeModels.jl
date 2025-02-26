@@ -8,6 +8,8 @@ using Statistics: mean, std
 using Random
 
 using CUDA
+using CUDA: CuIterator
+
 import Optimisers
 import Optimisers: OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, Momentum, AdaDelta
 

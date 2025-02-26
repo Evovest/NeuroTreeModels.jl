@@ -4,13 +4,13 @@ abstract type MAE <: LossType end
 abstract type LogLoss <: LossType end
 abstract type MLogLoss <: LossType end
 abstract type GaussianMLE <: LossType end
-abstract type TweedieDeviance <: LossType end
+abstract type Tweedie <: LossType end
 
 const _loss_type_dict = Dict(
   :mse => MSE,
   :mae => MAE,
   :logloss => LogLoss,
-  :tweedie_deviance => TweedieDeviance,
+  :tweedie => Tweedie,
   :gaussian_mle => GaussianMLE,
   :mlogloss => MLogLoss
 )

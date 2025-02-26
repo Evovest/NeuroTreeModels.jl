@@ -9,7 +9,6 @@ end
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    # nw = sigmoid_fast.(m.w * x .+ m.b)
     nw = sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
