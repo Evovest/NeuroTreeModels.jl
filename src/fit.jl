@@ -26,7 +26,6 @@ function init(
 
     chain = get_model_chain(L; config, nfeats, outsize)
     info = Dict(
-        :device => device,
         :nrounds => 0,
         :feature_names => feature_names,
         :target_levels => target_levels,
@@ -92,7 +91,7 @@ function fit(
 
     device = Symbol(config.device)
     if device == :gpu
-        CUDA.device!(gpuID)
+        CUDA.device!(config.gpuID)
     end
 
     feature_names = Symbol.(feature_names)

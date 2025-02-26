@@ -30,7 +30,7 @@ function CallBack(
     offset_name=nothing
 )
 
-    device = config
+    device = config.device
     batchsize = config.batchsize
     feval = metric_dict[config.metric]
     deval = get_df_loader_train(deval; feature_names, target_name, weight_name, offset_name, batchsize, device)
