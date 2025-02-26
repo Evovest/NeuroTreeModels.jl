@@ -140,8 +140,9 @@ function (m::NeuroTreeModel)(x::AbstractMatrix)
     end
     return p
 end
-function (m::NeuroTreeModel)(data::AbstractDataFrame)
-    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device=m.info[:device])
+function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu)
+    m = device == :cpu ? m |> cpu : m |> gpu
+    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device)
     p = infer(m, dinfer)
     return p
 end

@@ -21,7 +21,7 @@ function MMI.fit(
   end
   offset_name = nothing
 
-  fitresult, cache = init(model, dtrain; feature_names, target_name, weight_name, offset_name, device=:cpu)
+  fitresult, cache = init(model, dtrain; feature_names, target_name, weight_name, offset_name)
 
   while fitresult.info[:nrounds] < model.nrounds
     fit_iter!(fitresult, cache)
