@@ -116,14 +116,13 @@ pre, code {
 }
 
 /* Hero Section */
-:root.dark {
+/* :root.dark {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
     var(--julia-purple) 15%,
     var(--vp-dark-green-light),
     var(--vp-dark-green)
-
   );
   --vp-home-hero-image-background-image: linear-gradient(
     -45deg,
@@ -132,7 +131,7 @@ pre, code {
     var(--vp-dark-gray) 30%
   );
   --vp-home-hero-image-filter: blur(56px);
-}
+} */
 
 .dark {
   --vp-c-brand-1: var(--vp-dark-green-light);
@@ -142,7 +141,7 @@ pre, code {
 }
 
 /* Component: Home */
-:root {
+/* :root {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(
     120deg,
@@ -157,7 +156,7 @@ pre, code {
     #cb3d33e3 
   );
   --vp-home-hero-image-filter: blur(40px);
-}
+} */
 
 @media (min-width: 640px) {
   :root {

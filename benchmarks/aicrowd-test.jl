@@ -56,11 +56,11 @@ config = NeuroTreeRegressor(
     actA=:tanh,
     depth=4,
     ntrees=32,
-    batchsize=2048,
+    batchsize=4096,
     rng=123,
     lr=3e-3,
     early_stopping_rounds=5,
-    device=:cpu
+    device=:gpu
 )
 
 @time m = NeuroTreeModels.fit(

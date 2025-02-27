@@ -18,8 +18,11 @@ config = NeuroTreeRegressor(
     nrounds = 10,
     num_trees = 16,
     depth = 5,
+    device = :cpu
 )
 ```
+
+For training on GPU, use `device=:gpu` in the constructor, and optionally `gpuID=0` to target a specifiy a device.
 
 ## Training
 
@@ -39,6 +42,7 @@ m = NeuroTreeModels.fit(config, dtrain; feature_names, target_name)
 
 ```julia
 p = m(dtrain)
+p = m(dtrain; device=:gpu)
 ```
 
 ## MLJ
@@ -55,4 +59,4 @@ p = predict(mach, X)
 
 ## Benchmarks
 
-Benchmarking against prominent ML libraries for tabular is performed at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
+Benchmarking against prominent ML libraries for tabular data is performed at [MLBenchmarks.jl](https://github.com/Evovest/MLBenchmarks.jl).
