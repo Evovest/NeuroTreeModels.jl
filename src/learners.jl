@@ -73,7 +73,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 # Internal API
 
 Do `config = NeuroTreeRegressor()` to construct an instance with default hyper-parameters.
-Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeRegressor(loss=:logistic, depth=5, ...)`.
+Provide keyword arguments to override hyper-parameter defaults, as in `NeuroTreeRegressor(loss=:logloss, depth=5, ...)`.
 
 ## Training model
 
