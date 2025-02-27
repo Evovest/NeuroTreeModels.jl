@@ -52,7 +52,6 @@ end
         weight_name=nothing,
         offset_name=nothing,
         deval=nothing,
-        metric=nothing,
         print_every_n=9999,
         verbosity=1,
     )
