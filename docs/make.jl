@@ -9,9 +9,9 @@ pages = [
     "Models" => "models.md",
     "API" => "API.md",
     "Tutorials" => [
-        "Regression - Boston" => "tutorials-regression-boston.md",
-        "Logistic - Titanic" => "tutorials-logistic-titanic.md",
-        "Classification - IRIS" => "tutorials-classification-iris.md",
+        "Regression - Boston" => "tutorials/regression-boston.md",
+        "Logistic - Titanic" => "tutorials/logistic-titanic.md",
+        "Classification - IRIS" => "tutorials/classification-iris.md",
     ]
 ]
 
