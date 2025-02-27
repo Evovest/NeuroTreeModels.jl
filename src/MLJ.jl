@@ -6,7 +6,6 @@ function MMI.fit(
   w=nothing)
 
   Tables.istable(A) ? dtrain = DataFrame(A) : error("`A` must be a Table")
-  nobs = Tables.DataAPI.nrow(dtrain)
   feature_names = string.(collect(Tables.schema(dtrain).names))
   @assert "_target" ∉ feature_names
   dtrain._target = y
@@ -58,18 +57,17 @@ function MMI.update(
   return fitresult, cache, report
 end
 
-function predict(::NeuroTreeRegressor, fitresult, A; device=:cpu, gpuID=0)
-  # @assert istable(A)
+function predict(::NeuroTreeRegressor, fitresult, A)
   df = DataFrame(A)
   Tables.istable(A) ? df = DataFrame(A) : error("`A` must be a Table")
-  pred = fitresult(df; device, gpuID)
+  pred = fitresult(df)
   return pred
 end
 
-function predict(::NeuroTreeClassifier, fitresult, A; device=:cpu, gpuID=0)
+function predict(::NeuroTreeClassifier, fitresult, A)
   df = DataFrame(A)
   Tables.istable(A) ? df = DataFrame(A) : error("`A` must be a Table")
-  pred = fitresult(df; device, gpuID)
+  pred = fitresult(df)
   return MMI.UnivariateFinite(fitresult.info[:target_levels], pred, pool=missing, ordered=fitresult.info[:target_isordered])
 end
 

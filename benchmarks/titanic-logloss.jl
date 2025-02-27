@@ -32,15 +32,13 @@ deval = df[setdiff(1:nrow(df), train_indices), :]
 target_name = "Survived"
 feature_names = setdiff(names(df), ["Survived"])
 
-device = :gpu
-
 config = NeuroTreeRegressor(;
     loss=:logloss,
     nrounds=400,
     depth=4,
     lr=3e-2,
     early_stopping_rounds=3,
-    device
+    device=:gpu
 )
 
 m = NeuroTreeModels.fit(
@@ -52,8 +50,23 @@ m = NeuroTreeModels.fit(
     print_every_n=10
 )
 
-p_train = m(dtrain; device)
-p_eval = m(deval; device)
+p_train = m(dtrain; device=:cpu)
+p_eval = m(deval; device=:cpu)
 
 @info mean((p_train .> 0.5) .== (dtrain[!, target_name] .> 0.5))
 @info mean((p_eval .> 0.5) .== (deval[!, target_name] .> 0.5))
+
+
+###################################
+# MLJ
+###################################
+using MLJBase, NeuroTreeModels
+m = NeuroTreeRegressor(depth=5, nrounds=40, batchsize=1024, device=:cpu)
+mach = machine(m, dtrain[:, feature_names], Float32.(dtrain[!, target_name])) |> fit!
+p = predict(mach, dtrain[:, feature_names])
+@info mean((p .> 0.5) .== (dtrain[!, target_name] .> 0.5))
+
+m = NeuroTreeRegressor(depth=5, nrounds=40, batchsize=1024, device=:gpu)
+mach = machine(m, dtrain[:, feature_names], Float32.(dtrain[!, target_name])) |> fit!
+p = predict(mach, dtrain[:, feature_names])
+@info mean((p .> 0.5) .== (dtrain[!, target_name] .> 0.5))
