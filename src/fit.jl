@@ -54,10 +54,7 @@ end
         deval=nothing,
         metric=nothing,
         print_every_n=9999,
-        early_stopping_rounds=9999,
         verbosity=1,
-        device=:cpu,
-        gpuID=0,
     )
 
 Training function of NeuroTreeModels' internal API.
