@@ -22,7 +22,7 @@ config = NeuroTreeRegressor(
 )
 ```
 
-For training on GPU, use `device=:gpu` in the constructor, and optionally `gpuID=0` to target a specifiy a device.
+For training on GPU, use `device=:gpu` in the constructor, and optionally `gpuID=0` to target a specific a device.
 
 ## Training
 
