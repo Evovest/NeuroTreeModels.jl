@@ -7,9 +7,9 @@ on:
     branches:
       - main
       - ci-docs
-    tags: '*'
+    tags: "*"
 env:
- JULIA_PKG_USE_CLI_GIT: true
+  JULIA_PKG_USE_CLI_GIT: true
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
@@ -18,20 +18,18 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.9'
-          - '1.10'
+          - "1.10"
+          - "1"
         os:
           - ubuntu-latest
         arch:
           - x64
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
-        with:
-          git_cli: true # = JULIA_PKG_USE_CLI_GIT. Options: true | false (default)
       - uses: julia-actions/julia-runtest@v1
