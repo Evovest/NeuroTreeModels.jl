@@ -24,9 +24,9 @@ const navTemp = {
     {
       text: 'Tutorials',
       items: [
-        { text: 'Regression', link: '/tutorials-regression-boston' },
-        { text: 'Logistic', link: '/tutorials-logistic-titanic' },
-        { text: 'Classification', link: '/tutorials-classification-iris' },
+        { text: 'Regression', link: '/tutorials/regression-boston' },
+        { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+        { text: 'Classification', link: '/tutorials/classification-iris' },
       ]
     }
   ]
@@ -92,9 +92,9 @@ export default defineConfig({
       {
         text: 'Tutorials',
         items: [
-          { text: 'Regression', link: '/tutorials-regression-boston' },
-          { text: 'Logistic', link: '/tutorials-logistic-titanic' },
-          { text: 'Classification', link: '/tutorials-classification-iris' },
+          { text: 'Regression', link: '/tutorials/regression-boston' },
+          { text: 'Logistic', link: '/tutorials/logistic-titanic' },
+          { text: 'Classification', link: '/tutorials/classification-iris' },
         ]
       }
     ],
