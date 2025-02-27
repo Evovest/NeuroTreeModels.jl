@@ -1,12 +1,8 @@
-# using Flux: params, gpu
-using Revise
-
-using Tullio
 using StatsBase
 using Statistics: mean, std
 using CUDA
 
-using NeuroTrees
+using NeuroTreeModels
 using BenchmarkTools
 using Random: seed!
 
@@ -23,32 +19,27 @@ X = rand(Float32, nobs, num_feat)
 Y = randn(Float32, size(X, 1))
 
 config = NeuroTreeRegressor(
-    device = :gpu,
-    loss = :mse,
-    nrounds = 1,
-    actA = :softmax,
-    scaler = false,
-    outsize = 1,
-    depth = 5,
-    num_trees = 64,
-    masks = nothing,
-    batchsize = 2048,
-    shuffle = true,
-    rng = 123,
-    opt = Dict("type" => "nadam", "lr" => 1e-3),
+    loss=:mse,
+    nrounds=1,
+    actA=:identity,
+    depth=5,
+    ntrees=64,
+    batchsize=2048,
+    rng=123,
+    lr=1e-3,
+    device=:gpu,
 )
 
-CUDA.@time m, cache = NeuroTrees.init(config, x_train = X, y_train = Y);
+CUDA.@time m, cache = NeuroTreeModels.init(config, x_train=X, y_train=Y);
 CUDA.@time NeuroTreeModels.fit!(m, cache);
-CUDA.@time NeuroTreeModels.fit(config, x_train = X, y_train = Y);
-@time NeuroTrees.fit(config, x_train = X, y_train = Y);
+CUDA.@time NeuroTreeModels.fit(config, x_train=X, y_train=Y);
+@time NeuroTrees.fit(config, x_train=X, y_train=Y);
 CUDA.@time NeuroTreeModels.fit(
     config,
-    x_train = X,
-    y_train = Y,
-    x_eval = X,
-    y_eval = Y,
-    metric = :mse,
+    x_train=X,
+    y_train=Y,
+    x_eval=X,
+    y_eval=Y,
 );
 
 #######
@@ -62,9 +53,9 @@ CUDA.@time NeuroTreeModels.fit(
 _device = config.device == "cpu" ? NeuroTrees.cpu : NeuroTrees.gpu
 dinfer = NeuroTreeModels.DataLoader(
     Matrix{Float32}(X') |> _device,
-    batchsize = config.batchsize,
-    shuffle = false,
-    partial = true,
+    batchsize=config.batchsize,
+    shuffle=false,
+    partial=true,
 )
 @time pred = NeuroTreeModels.infer(m, dinfer);
 @btime pred = NeuroTreeModels.infer($m, $dinfer);
