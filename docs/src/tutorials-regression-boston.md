@@ -48,6 +48,8 @@ config = NeuroTreeRegressor(
     nrounds=400,
     depth=5,
     lr=2e-2,
+    early_stopping_rounds=2,
+    device=:cpu
 )
 
 m = NeuroTreeModels.fit(
@@ -56,10 +58,7 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    metric=:mse,
     print_every_n=10,
-    early_stopping_rounds=2,
-    device=:cpu
 )
 ```
 

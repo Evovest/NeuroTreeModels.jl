@@ -4,4 +4,4 @@ DocumenterVitepress = "4710194d-e776-4893-9690-8d956a29c365"
 
 [compat]
 Documenter = "1"
-DocumenterVitepress = "0.0.12"
+DocumenterVitepress = "0.1.9"
