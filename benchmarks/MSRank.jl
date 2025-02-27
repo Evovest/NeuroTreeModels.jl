@@ -62,6 +62,8 @@ config = NeuroTreeRegressor(
     hidden_size=16,
     batchsize=4096,
     lr=3e-4,
+    early_stopping_rounds=3,
+    device=:gpu,
 )
 
 @time m = NeuroTreeModels.fit(
@@ -71,9 +73,6 @@ config = NeuroTreeRegressor(
     target_name,
     feature_names,
     print_every_n=1,
-    early_stopping_rounds=3,
-    metric=:mse,
-    device=:gpu,
 );
 
 p_eval = m(deval);

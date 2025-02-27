@@ -40,6 +40,8 @@ config = NeuroTreeClassifier(
     nrounds=400,
     depth=4,
     lr=3e-2,
+    early_stopping_rounds=3,
+    device=:cpu
 )
 
 m = NeuroTreeModels.fit(
@@ -48,10 +50,7 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    metric=:mlogloss,
     print_every_n=10,
-    early_stopping_rounds=3,
-    device=:cpu
 )
 
 p_train = m(dtrain)

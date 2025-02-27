@@ -66,8 +66,7 @@ end
         dtrain;
         target_name,
         feature_names,
-        deval,
-        metric=:mse
+        deval
     )
 
 end
@@ -91,19 +90,16 @@ end
         nrounds=100,
         depth=4,
         lr=3e-2,
-        batchsize=64
-    )
+        batchsize=64,
+        early_stopping_rounds=10,
+        device=:cpu)
 
     m = NeuroTreeModels.fit(
         config,
         dtrain;
         deval,
         target_name,
-        feature_names,
-        metric=:mlogloss,
-        early_stopping_rounds=10,
-        # print_every_n=10,
-        device=:cpu
+        feature_names
     )
 
     # Predictions depend on the number of samples in the dataset

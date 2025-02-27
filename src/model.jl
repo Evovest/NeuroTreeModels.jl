@@ -5,13 +5,10 @@ struct NeuroTree{W,B,P,F<:Function}
     p::P
     actA::F
 end
-
-@functor NeuroTree
-# Flux.trainable(m::NeuroTree) = (w=m.w, b=m.b, p=m.p)
+@layer NeuroTree
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    # nw = sigmoid_fast.(m.w * x .+ m.b)
     nw = sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
@@ -69,7 +66,7 @@ A StackTree is made of a collection of NeuroTrees.
 struct StackTree
     trees::Vector{NeuroTree}
 end
-@functor StackTree
+@layer StackTree
 
 function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1.0)
     @assert stack_size == 1 || hidden_size >= outs
@@ -125,7 +122,7 @@ struct NeuroTreeModel{L<:LossType,C<:Chain}
     chain::C
     info::Dict{Symbol,Any}
 end
-@functor NeuroTreeModel
+@layer NeuroTreeModel
 
 """
     (m::NeuroTreeModel)(x::AbstractMatrix)
@@ -140,8 +137,12 @@ function (m::NeuroTreeModel)(x::AbstractMatrix)
     end
     return p
 end
-function (m::NeuroTreeModel)(data::AbstractDataFrame)
-    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device=m.info[:device])
+function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
+    if device == :gpu
+        CUDA.device!(gpuID)
+    end
+    m = device == :cpu ? m |> cpu : m |> gpu
+    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device)
     p = infer(m, dinfer)
     return p
 end

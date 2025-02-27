@@ -58,6 +58,8 @@ config = NeuroTreeRegressor(
     MLE_tree_split=true,
     batchsize=2048,
     lr=1e-3,
+    early_stopping_rounds=2,
+    device=:gpu
 )
 
 @time m = NeuroTreeModels.fit(
@@ -66,10 +68,7 @@ config = NeuroTreeRegressor(
     deval,
     target_name,
     feature_names,
-    print_every_n=5,
-    early_stopping_rounds=2,
-    metric=:gaussian_mle,
-    device=:gpu
+    print_every_n=5
 );
 
 # dinfer_eval = NeuroTrees.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);

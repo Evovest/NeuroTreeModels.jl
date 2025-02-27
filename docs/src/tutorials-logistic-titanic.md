@@ -40,7 +40,6 @@ transform!(df, :Age => (x -> coalesce.(x, median(skipmissing(x)))) => :Age);
 
 # remove unneeded variables
 df = df[:, Not([:PassengerId, :Name, :Embarked, :Cabin, :Ticket])]
-
 ```
 
 The full data can now be split according to train and eval indices. 
@@ -68,6 +67,8 @@ config = NeuroTreeRegressor(
     nrounds=400,
     depth=4,
     lr=2e-2,
+    early_stopping_rounds=2,
+    device=:cpu
 )
 
 m = NeuroTreeModels.fit(
@@ -76,10 +77,7 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    metric=:logloss,
     print_every_n=10,
-    early_stopping_rounds=2,
-    device=:cpu
 )
 ```
 

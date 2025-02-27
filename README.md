@@ -21,7 +21,7 @@
 ] add NeuroTreeModels
 ```
 
-⚠ Compatible with Julia >= v1.9.
+⚠ Compatible with Julia >= v1.10
 
 ## Configuring a model
 
@@ -43,7 +43,7 @@ config = NeuroTreeRegressor(
 ## Training
 
 Building and training a model according to the above `config` is done with [NeuroTreeModels.fit](https://evovest.github.io/NeuroTreeModels.jl/dev/API#NeuroTreeModels.fit).
-See the docs for additional features, notably early stopping support through the tracking of an evaluation metric.
+See the docs for additional features, notably early stopping support through the tracking of an evaluation metric on evaluation data.
 
 ```julia
 nobs, nfeats = 1_000, 5

@@ -32,11 +32,15 @@ deval = df[setdiff(1:nrow(df), train_indices), :]
 target_name = "Survived"
 feature_names = setdiff(names(df), ["Survived"])
 
-config = NeuroTreeRegressor(
+device = :gpu
+
+config = NeuroTreeRegressor(;
     loss=:logloss,
     nrounds=400,
     depth=4,
     lr=3e-2,
+    early_stopping_rounds=3,
+    device
 )
 
 m = NeuroTreeModels.fit(
@@ -45,14 +49,11 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    metric=:logloss,
-    print_every_n=10,
-    early_stopping_rounds=3,
-    device=:cpu
+    print_every_n=10
 )
 
-p_train = m(dtrain)
-p_eval = m(deval)
+p_train = m(dtrain; device)
+p_eval = m(deval; device)
 
 @info mean((p_train .> 0.5) .== (dtrain[!, target_name] .> 0.5))
 @info mean((p_eval .> 0.5) .== (deval[!, target_name] .> 0.5))

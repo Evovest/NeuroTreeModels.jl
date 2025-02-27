@@ -1,9 +1,9 @@
 """
     DL
 
-Union{NeuroTreeModels.CuIterator, NeuroTreeModels.DataLoader}
+Union{CuIterator, DataLoader}
 """
-const DL = Union{NeuroTreeModels.CuIterator,NeuroTreeModels.DataLoader}
+const DL = Union{CuIterator,DataLoader}
 
 """
 infer(m::NeuroTreeModel, data)
@@ -55,7 +55,7 @@ function infer(m::NeuroTreeModel{<:GaussianMLE}, data::DL)
     return p
 end
 
-function infer(m::NeuroTreeModel{L}, data::DL) where {L<:Union{TweedieDeviance}}
+function infer(m::NeuroTreeModel{L}, data::DL) where {L<:Union{Tweedie}}
     preds = Vector{Float32}[]
     for x in data
         push!(preds, Vector(m(x)))

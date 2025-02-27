@@ -4,20 +4,22 @@ abstract type MAE <: LossType end
 abstract type LogLoss <: LossType end
 abstract type MLogLoss <: LossType end
 abstract type GaussianMLE <: LossType end
-abstract type TweedieDeviance <: LossType end
+abstract type Tweedie <: LossType end
 
 const _loss_type_dict = Dict(
   :mse => MSE,
   :mae => MAE,
   :logloss => LogLoss,
-  :tweedie_deviance => TweedieDeviance,
+  :tweedie => Tweedie,
   :gaussian_mle => GaussianMLE,
   :mlogloss => MLogLoss
 )
 
 mutable struct NeuroTreeRegressor <: MMI.Deterministic
   loss::Symbol
+  metric::Symbol
   nrounds::Int
+  early_stopping_rounds::Int
   lr::Float32
   wd::Float32
   batchsize::Int
@@ -28,7 +30,9 @@ mutable struct NeuroTreeRegressor <: MMI.Deterministic
   stack_size::Int
   init_scale::Float32
   MLE_tree_split::Bool
-  rng::Any
+  rng::AbstractRNG
+  device::Symbol
+  gpuID::Int
 end
 
 """
@@ -42,7 +46,11 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
   - `:mse`
   - `:mae`
   - `:logloss`
-  - `:mlogloss`
+  - `:gaussian_mle`
+- `metric=nothing`: evaluation metric tracked on `deval`. Can be one of:
+  - `:mse`
+  - `:mae`
+  - `:logloss`
   - `:gaussian_mle`
 - `nrounds=100`:             Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
@@ -59,6 +67,8 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 - `init_scale=1.0`:         Scaling factor applied to the predictions weights. Values in the `]0, 1]` short result in best performance. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
+- `device=:cpu`:            Device on which to perform the computation, either `:cpu` or `:gpu`
+- `gpuID=0`:                GPU device to use, only relveant if `device = :gpu` 
 
 # Internal API
 
@@ -150,7 +160,9 @@ function NeuroTreeRegressor(; kwargs...)
   # defaults arguments
   args = Dict{Symbol,Any}(
     :loss => :mse,
+    :metric => nothing,
     :nrounds => 100,
+    :early_stopping_rounds => typemax(Int),
     :lr => 1.0f-2,
     :wd => 0.0f0,
     :batchsize => 2048,
@@ -162,6 +174,8 @@ function NeuroTreeRegressor(; kwargs...)
     :init_scale => 0.1,
     :MLE_tree_split => false,
     :rng => 123,
+    :device => :cpu,
+    :gpuID => 0
   )
 
   args_ignored = setdiff(keys(kwargs), keys(args))
@@ -180,13 +194,26 @@ function NeuroTreeRegressor(; kwargs...)
   end
 
   loss = Symbol(args[:loss])
-  loss ∉ [:mse, :mae, :logloss, :gaussian_mle, :tweedie_deviance] && error("The provided kwarg `loss`: $loss is not supported.")
+  loss ∉ [:mse, :mae, :logloss, :tweedie, :gaussian_mle] && error("The provided kwarg `loss`: $loss is not supported.")
 
-  args[:rng] = mk_rng(args[:rng])
+  _metric_list = [:mse, :mae, :logloss, :tweedie, :gaussian_mle]
+  if isnothing(args[:metric])
+    metric = loss
+  else
+    metric = Symbol(args[:metric])
+  end
+  if metric ∉ _metric_list
+    error("Invalid metric. Must be one of: $_metric_list")
+  end
+
+  rng = mk_rng(args[:rng])
+  device = Symbol(args[:device])
 
   config = NeuroTreeRegressor(
-    args[:loss],
+    loss,
+    metric,
     args[:nrounds],
+    args[:early_stopping_rounds],
     Float32(args[:lr]),
     Float32(args[:wd]),
     args[:batchsize],
@@ -197,7 +224,9 @@ function NeuroTreeRegressor(; kwargs...)
     args[:stack_size],
     args[:init_scale],
     args[:MLE_tree_split],
-    args[:rng]
+    rng,
+    device,
+    args[:gpuID]
   )
 
   return config
@@ -206,7 +235,9 @@ end
 
 mutable struct NeuroTreeClassifier <: MMI.Probabilistic
   loss::Symbol
+  metric::Symbol
   nrounds::Int
+  early_stopping_rounds::Int
   lr::Float32
   wd::Float32
   batchsize::Int
@@ -217,7 +248,9 @@ mutable struct NeuroTreeClassifier <: MMI.Probabilistic
   stack_size::Int
   init_scale::Float32
   MLE_tree_split::Bool
-  rng::Any
+  rng::AbstractRNG
+  device::Symbol
+  gpuID::Int
 end
 
 """
@@ -242,6 +275,8 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 - `init_scale=1.0`:         Scaling factor applied to the predictions weights. Values in the `]0, 1]` short result in best performance. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
+- `device=:cpu`:            Device on which to perform the computation, either `:cpu` or `:gpu`
+- `gpuID=0`:                GPU device to use, only relveant if `device = :gpu` 
 
 # Internal API
 
@@ -333,6 +368,7 @@ function NeuroTreeClassifier(; kwargs...)
   # defaults arguments
   args = Dict{Symbol,Any}(
     :nrounds => 100,
+    :early_stopping_rounds => typemax(Int),
     :lr => 1.0f-2,
     :wd => 0.0f0,
     :batchsize => 2048,
@@ -344,6 +380,8 @@ function NeuroTreeClassifier(; kwargs...)
     :init_scale => 0.1,
     :MLE_tree_split => false,
     :rng => 123,
+    :device => :cpu,
+    :gpuID => 0
   )
 
   args_ignored = setdiff(keys(kwargs), keys(args))
@@ -361,11 +399,17 @@ function NeuroTreeClassifier(; kwargs...)
     args[arg] = kwargs[arg]
   end
 
-  args[:rng] = mk_rng(args[:rng])
+  loss = :mlogloss
+  metric = :mlogloss
+
+  rng = mk_rng(args[:rng])
+  device = Symbol(args[:device])
 
   config = NeuroTreeClassifier(
-    :mlogloss,
+    loss,
+    metric,
     args[:nrounds],
+    args[:early_stopping_rounds],
     Float32(args[:lr]),
     Float32(args[:wd]),
     args[:batchsize],
@@ -376,7 +420,9 @@ function NeuroTreeClassifier(; kwargs...)
     args[:stack_size],
     args[:init_scale],
     args[:MLE_tree_split],
-    args[:rng],
+    rng,
+    device,
+    args[:gpuID],
   )
 
   return config

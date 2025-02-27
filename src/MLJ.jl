@@ -21,7 +21,7 @@ function MMI.fit(
   end
   offset_name = nothing
 
-  fitresult, cache = init(model, dtrain; feature_names, target_name, weight_name, offset_name, device=:cpu)
+  fitresult, cache = init(model, dtrain; feature_names, target_name, weight_name, offset_name)
 
   while fitresult.info[:nrounds] < model.nrounds
     fit_iter!(fitresult, cache)
@@ -58,20 +58,18 @@ function MMI.update(
   return fitresult, cache, report
 end
 
-function MMI.predict(::NeuroTreeRegressor, fitresult, A)
+function predict(::NeuroTreeRegressor, fitresult, A; device=:cpu, gpuID=0)
   # @assert istable(A)
   df = DataFrame(A)
   Tables.istable(A) ? df = DataFrame(A) : error("`A` must be a Table")
-  dinfer = get_df_loader_infer(df; feature_names=fitresult.info[:feature_names], batchsize=2048, device=:cpu)
-  pred = infer(fitresult, dinfer)
+  pred = fitresult(df; device, gpuID)
   return pred
 end
 
-function predict(::NeuroTreeClassifier, fitresult, A)
+function predict(::NeuroTreeClassifier, fitresult, A; device=:cpu, gpuID=0)
   df = DataFrame(A)
   Tables.istable(A) ? df = DataFrame(A) : error("`A` must be a Table")
-  dinfer = get_df_loader_infer(df; feature_names=fitresult.info[:feature_names], batchsize=2048, device=:cpu)
-  pred = infer(fitresult, dinfer)
+  pred = fitresult(df; device, gpuID)
   return MMI.UnivariateFinite(fitresult.info[:target_levels], pred, pool=missing, ordered=fitresult.info[:target_isordered])
 end
 

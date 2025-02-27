@@ -22,13 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: "1.10"
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/setup-julia@v2
+      - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
-        with:
-          git_cli: true # = JULIA_PKG_USE_CLI_GIT. Options: true | false (default)
       - name: Instantiate NPM
         run: cd docs/; npm i; cd ..
       - uses: julia-actions/julia-docdeploy@v1

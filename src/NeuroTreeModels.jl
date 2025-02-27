@@ -8,11 +8,13 @@ using Statistics: mean, std
 using Random
 
 using CUDA
+using CUDA: CuIterator
+
 import Optimisers
 import Optimisers: OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, Momentum, AdaDelta
 
 import Flux
-import Flux: @functor, trainmode!, gradient, Chain, DataLoader, cpu, gpu
+import Flux: @layer, trainmode!, gradient, Chain, DataLoader, cpu, gpu
 import Flux: logσ, logsoftmax, softmax, softmax!, sigmoid, sigmoid_fast, hardsigmoid, tanh, tanh_fast, hardtanh, softplus, onecold, onehotbatch
 import Flux: BatchNorm, Dense, MultiHeadAttention, Parallel
 

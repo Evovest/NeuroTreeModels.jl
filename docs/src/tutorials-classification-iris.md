@@ -46,6 +46,7 @@ config = NeuroTreeClassifier(
     depth=4,
     lr=5e-2,
     batchsize=60,
+    early_stopping_rounds=2
 )
 
 m = NeuroTreeModels.fit(
@@ -54,9 +55,7 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    metric=:mlogloss,
     print_every_n=10,
-    early_stopping_rounds=2,
 )
 ```
 

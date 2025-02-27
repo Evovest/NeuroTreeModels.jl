@@ -24,24 +24,24 @@ end
 function CallBack(
     config::NeuroTypes,
     deval::AbstractDataFrame;
-    metric,
     feature_names,
     target_name,
     weight_name=nothing,
-    offset_name=nothing,
-    device=:cpu)
+    offset_name=nothing
+)
 
+    device = config.device
     batchsize = config.batchsize
-    feval = metric_dict[metric]
+    feval = metric_dict[config.metric]
     deval = get_df_loader_train(deval; feature_names, target_name, weight_name, offset_name, batchsize, device)
     return CallBack(feval, deval)
 end
 
-function init_logger(; metric, early_stopping_rounds)
+function init_logger(config::NeuroTypes)
     logger = Dict(
-        :name => String(metric),
-        :maximise => is_maximise(metric_dict[metric]),
-        :early_stopping_rounds => early_stopping_rounds,
+        :name => String(config.metric),
+        :maximise => is_maximise(metric_dict[config.metric]),
+        :early_stopping_rounds => config.early_stopping_rounds,
         :nrounds => 0,
         :metrics => (iter=Int[], metric=Float64[]),
         :iter_since_best => 0,
