@@ -38,7 +38,7 @@ config = NeuroTreeRegressor(;
     depth=4,
     lr=3e-2,
     early_stopping_rounds=3,
-    device=:gpu
+    device=:cpu
 )
 
 m = NeuroTreeModels.fit(
