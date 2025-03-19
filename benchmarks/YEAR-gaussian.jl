@@ -49,6 +49,7 @@ dtest = df_tot[(end-51630+1):end, :];
 config = NeuroTreeRegressor(
     loss=:gaussian_mle,
     actA=:identity,
+    init_scale=1.0,
     nrounds=200,
     depth=4,
     ntrees=32,

@@ -40,7 +40,7 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nt = NeuroTree(
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
         Flux.glorot_uniform(nnodes * ntrees), # b
-        zeros(Float32, outs, nleaves, ntrees), # p
+        Flux.glorot_uniform(outs, nleaves, ntrees) .* Float32(init_scale), # p
         actA,
     )
     return nt
@@ -51,7 +51,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nt = NeuroTree(
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
         Flux.glorot_uniform(nnodes * ntrees), # b
-        zeros(Float32, outs, nleaves, ntrees), # p
+        Flux.glorot_uniform(outs, nleaves, ntrees) .* Float32(init_scale), # p
         actA,
     )
     return nt
