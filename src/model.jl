@@ -145,18 +145,6 @@ function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
     return p
 end
 
-# function _identity_act(x)
-#     return x ./ sum(abs.(x), dims=2)
-# end
-# function _tanh_act(x)
-#     x = Flux.tanh_fast.(x)
-#     return x ./ sum(abs.(x), dims=2)
-# end
-# function _hardtanh_act(x)
-#     x = Flux.hardtanh.(x)
-#     return x ./ sum(abs.(x), dims=2)
-# end
-
 """
     act_dict = Dict(
         :identity => _identity_act,
@@ -171,11 +159,6 @@ const act_dict = Dict(
     :tanh => Flux.tanh_fast,
     :hardtanh => Flux.hardtanh,
 )
-# const act_dict = Dict(
-#     :identity => _identity_act,
-#     :tanh => _tanh_act,
-#     :hardtanh => _hardtanh_act,
-# )
 
 function get_model_chain(L; config, nfeats, outsize)
 
