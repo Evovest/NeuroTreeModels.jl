@@ -31,12 +31,6 @@ feature_names = setdiff(names(df_tot), ["y_raw", "y_norm", "w"])
 df_tot.w .= 1.0
 target_name = "y_norm"
 
-# function percent_rank(x::AbstractVector{T}) where {T}
-#     return tiedrank(x) / (length(x) + 1)
-# end
-
-# transform!(df_tot, feature_names .=> percent_rank .=> feature_names)
-
 dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
@@ -46,7 +40,7 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
-    init_scale=1.0,
+    init_scale=0.0,
     nrounds=200,
     depth=4,
     ntrees=32,
