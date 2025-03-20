@@ -9,7 +9,7 @@ end
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
+    nw = Flux.sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
@@ -39,7 +39,7 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nleaves = 2^depth
     nt = NeuroTree(
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        Flux.glorot_uniform(nnodes * ntrees), # b
+        zeros(Float32, nnodes * ntrees), # b
         Flux.glorot_uniform(outs, nleaves, ntrees) .* Float32(init_scale), # p
         actA,
     )
@@ -50,7 +50,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nleaves = 2^depth
     nt = NeuroTree(
         Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        Flux.glorot_uniform(nnodes * ntrees), # b
+        zeros(Float32, nnodes * ntrees), # b
         Flux.glorot_uniform(outs, nleaves, ntrees) .* Float32(init_scale), # p
         actA,
     )
@@ -145,13 +145,37 @@ function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
     return p
 end
 
-const _act_dict = Dict(
+# function _identity_act(x)
+#     return x ./ sum(abs.(x), dims=2)
+# end
+# function _tanh_act(x)
+#     x = Flux.tanh_fast.(x)
+#     return x ./ sum(abs.(x), dims=2)
+# end
+# function _hardtanh_act(x)
+#     x = Flux.hardtanh.(x)
+#     return x ./ sum(abs.(x), dims=2)
+# end
+
+"""
+    act_dict = Dict(
+        :identity => _identity_act,
+        :tanh => _tanh_act,
+        :hardtanh => _hardtanh_act,
+    )
+
+Dictionary mapping features activation name to their function.
+"""
+const act_dict = Dict(
     :identity => identity,
-    :tanh => tanh,
-    :hardtanh => hardtanh,
-    :sigmoid => sigmoid,
-    :hardsigmoid => hardsigmoid
+    :tanh => Flux.tanh_fast,
+    :hardtanh => Flux.hardtanh,
 )
+# const act_dict = Dict(
+#     :identity => _identity_act,
+#     :tanh => _tanh_act,
+#     :hardtanh => _hardtanh_act,
+# )
 
 function get_model_chain(L; config, nfeats, outsize)
 
@@ -165,14 +189,14 @@ function get_model_chain(L; config, nfeats, outsize)
                     ntrees=config.ntrees,
                     stack_size=config.stack_size,
                     hidden_size=config.hidden_size,
-                    actA=_act_dict[config.actA],
+                    actA=act_dict[config.actA],
                     init_scale=config.init_scale),
                 StackTree(nfeats => outsize;
                     depth=config.depth,
                     ntrees=config.ntrees,
                     stack_size=config.stack_size,
                     hidden_size=config.hidden_size,
-                    actA=_act_dict[config.actA],
+                    actA=act_dict[config.actA],
                     init_scale=config.init_scale)
             )
         )
@@ -185,7 +209,7 @@ function get_model_chain(L; config, nfeats, outsize)
                 ntrees=config.ntrees,
                 stack_size=config.stack_size,
                 hidden_size=config.hidden_size,
-                actA=_act_dict[config.actA],
+                actA=act_dict[config.actA],
                 init_scale=config.init_scale)
         )
 

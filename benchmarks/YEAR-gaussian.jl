@@ -46,7 +46,9 @@ dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
-config = NeuroTreeRegressor(
+device = :gpu
+
+config = NeuroTreeRegressor(;
     loss=:gaussian_mle,
     actA=:identity,
     init_scale=1.0,
@@ -59,7 +61,7 @@ config = NeuroTreeRegressor(
     batchsize=2048,
     lr=1e-3,
     early_stopping_rounds=2,
-    device=:gpu
+    device
 )
 
 @time m = NeuroTreeModels.fit(

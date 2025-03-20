@@ -15,7 +15,7 @@ import Optimisers: OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, 
 
 import Flux
 import Flux: @layer, trainmode!, gradient, Chain, DataLoader, cpu, gpu
-import Flux: logσ, logsoftmax, softmax, softmax!, sigmoid, sigmoid_fast, hardsigmoid, tanh, tanh_fast, hardtanh, softplus, onecold, onehotbatch
+import Flux: onecold, onehotbatch
 import Flux: BatchNorm, Dense, MultiHeadAttention, Parallel
 
 using ChainRulesCore
