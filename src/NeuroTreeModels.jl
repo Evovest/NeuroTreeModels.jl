@@ -17,6 +17,7 @@ import Flux
 import Flux: @layer, trainmode!, gradient, Chain, DataLoader, cpu, gpu
 import Flux: onecold, onehotbatch
 import Flux: BatchNorm, Dense, MultiHeadAttention, Parallel
+import Flux: logσ, logsoftmax, sigmoid, softmax!
 
 using ChainRulesCore
 import ChainRulesCore: rrule

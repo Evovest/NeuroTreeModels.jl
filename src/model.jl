@@ -9,7 +9,7 @@ end
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = Flux.sigmoid_fast.(m.actA.(m.w) * x .+ m.b)
+    nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
@@ -38,9 +38,9 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * ntrees), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
+        rand(Float32, nnodes * ntrees, ins) ./ 5 .- 0.1f0, # w
+        rand(Float32, nnodes * ntrees) ./ 5 .- 0.1f0, # b
+        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) ./ 100), # p
         actA,
     )
     return nt
@@ -49,9 +49,9 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        zeros(Float32, nnodes * ntrees), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* sqrt(12) .* init_scale), # p
+        rand(Float32, nnodes * ntrees, ins) ./ 5 .- 0.1f0, # w
+        rand(Float32, nnodes * ntrees) ./ 5 .- 0.1f0, # b
+        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) ./ 100), # p
         actA,
     )
     return nt
@@ -145,6 +145,19 @@ function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
     return p
 end
 
+
+function _identity_act(x)
+    return x ./ sum(abs.(x), dims=2)
+end
+function _tanh_act(x)
+    x = Flux.tanh_fast.(x)
+    return x ./ sum(abs.(x), dims=2)
+end
+function _hardtanh_act(x)
+    x = Flux.hardtanh.(x)
+    return x ./ sum(abs.(x), dims=2)
+end
+
 """
     act_dict = Dict(
         :identity => _identity_act,
@@ -155,9 +168,9 @@ end
 Dictionary mapping features activation name to their function.
 """
 const act_dict = Dict(
-    :identity => identity,
-    :tanh => Flux.tanh_fast,
-    :hardtanh => Flux.hardtanh,
+    :identity => _identity_act,
+    :tanh => _tanh_act,
+    :hardtanh => _hardtanh_act,
 )
 
 function get_model_chain(L; config, nfeats, outsize)

@@ -3,7 +3,7 @@ module Metrics
 export metric_dict, is_maximise
 
 import Statistics: mean, std
-import Flux: Chain, logσ, logsoftmax, softmax, relu, hardsigmoid, onehotbatch
+import Flux: Chain, logσ, logsoftmax, onehotbatch
 
 """
     mse(x, y; agg=mean)
