@@ -47,7 +47,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     hidden_size=8,
     batchsize=2048,
-    lr=1e-3,
+    lr=3e-4,
     early_stopping_rounds=2,
     device
 )
@@ -72,3 +72,5 @@ mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 p_test = m(dtest; device);
 mse_test = mean((p_test .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 @info "MSE - dtest" mse_test
+
+# @code_warntype m(Matrix{Float32}(Matrix(dtest[1:10,feature_names])'))

@@ -1,15 +1,15 @@
 
 struct NeuroTree{W,B,P,F<:Function}
+    bn::B
     w::W
-    b::B
     p::P
     actA::F
 end
 @layer NeuroTree
 
-function node_weights(m::NeuroTree, x)
+function node_weights(m::NeuroTree, x::AbstractMatrix{T}) where {T}
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
+    nw = m.bn(m.actA(m.w) * x)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
@@ -38,9 +38,9 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        rand(Float32, nnodes * ntrees, ins) ./ 5 .- 0.1f0, # w
-        rand(Float32, nnodes * ntrees) ./ 5 .- 0.1f0, # b
-        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) ./ 100), # p
+        BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
+        Flux.glorot_uniform(nnodes * ntrees, ins), # w
+        Float32.((rand(Float32, outs, nleaves, ntrees) .- 0.5f0) .* sqrt(12) .* init_scale), # p
         actA,
     )
     return nt
@@ -49,9 +49,9 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        rand(Float32, nnodes * ntrees, ins) ./ 5 .- 0.1f0, # w
-        rand(Float32, nnodes * ntrees) ./ 5 .- 0.1f0, # b
-        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) ./ 100), # p
+        BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
+        Flux.glorot_uniform(nnodes * ntrees, ins), # w
+        Float32.((rand(Float32, outs, nleaves, ntrees) .- 0.5f0) .* sqrt(12) .* init_scale), # p
         actA,
     )
     return nt
@@ -102,13 +102,6 @@ function (m::StackTree)(x::AbstractMatrix)
     end
     return p
 end
-# function (m::StackTree)(x::AbstractMatrix)
-#     p = m.trees[1](x)
-#     for i in 2:length(m.trees)
-#         p = m.trees[i](p)
-#     end
-#     return p
-# end
 
 """
     NeuroTreeModel
@@ -147,15 +140,13 @@ end
 
 
 function _identity_act(x)
-    return x ./ sum(abs.(x), dims=2)
+    return x
 end
 function _tanh_act(x)
-    x = Flux.tanh_fast.(x)
-    return x ./ sum(abs.(x), dims=2)
+    return Flux.tanh_fast.(x)
 end
 function _hardtanh_act(x)
-    x = Flux.hardtanh.(x)
-    return x ./ sum(abs.(x), dims=2)
+    return Flux.hardtanh.(x)
 end
 
 """
