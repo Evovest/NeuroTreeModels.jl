@@ -6,6 +6,14 @@ abstract type MLogLoss <: LossType end
 abstract type GaussianMLE <: LossType end
 abstract type Tweedie <: LossType end
 
+"""
+    mk_rng
+
+make a Random Number Generator object
+"""
+mk_rng(rng::Random.AbstractRNG) = rng
+mk_rng(rng::T) where {T<:Integer} = Random.MersenneTwister(rng)
+
 const _loss_type_dict = Dict(
   :mse => MSE,
   :mae => MAE,

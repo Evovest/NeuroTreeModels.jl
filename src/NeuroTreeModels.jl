@@ -28,7 +28,6 @@ import MLJModelInterface: fit, update, predict, schema
 export NeuroTreeRegressor, NeuroTreeClassifier, NeuroTreeModel, NeuroTree
 
 include("data.jl")
-include("utils.jl")
 include("learners.jl")
 include("model.jl")
 include("loss.jl")
