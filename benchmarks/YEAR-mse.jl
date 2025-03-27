@@ -40,14 +40,14 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
-    init_scale=1.0,
+    init_scale=0.0,
     nrounds=200,
-    depth=4,
+    depth=5,
     ntrees=32,
     stack_size=1,
     hidden_size=8,
     batchsize=2048,
-    lr=1e-3,
+    lr=3e-3,
     early_stopping_rounds=2,
     device
 )

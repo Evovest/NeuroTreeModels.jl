@@ -29,29 +29,29 @@ end
 dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
 
 """
-    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.0)
-    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1.0)
+    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=0.0)
+    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=0.0)
 
 Initialization of a NeuroTree.
 """
-function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.0)
+function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=0.0)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
+        Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
         zeros(Float32, nnodes * ntrees), # b
-        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
+        Float32.(randn(outs, nleaves, ntrees) .* sqrt(ntrees) .* init_scale), # p
         actA,
     )
     return nt
 end
-function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1.0)
+function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=0.0)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
+        Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
         zeros(Float32, nnodes * ntrees), # b
-        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
+        Float32.(randn(outs, nleaves, ntrees) .* sqrt(ntrees) .* init_scale), # p
         actA,
     )
     return nt
