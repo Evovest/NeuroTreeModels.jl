@@ -7,7 +7,7 @@ struct NeuroTree{W,B,P,F<:Function}
 end
 @layer NeuroTree
 
-function node_weights(m::NeuroTree, x::AbstractMatrix{T}) where {T}
+function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
     nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
