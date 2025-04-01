@@ -53,7 +53,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     MLE_tree_split=true,
     batchsize=2048,
-    lr=2e-3,
+    lr=1e-3,
     early_stopping_rounds=2,
     device
 )

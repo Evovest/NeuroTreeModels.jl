@@ -39,8 +39,8 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nleaves = 2^depth
     nt = NeuroTree(
         BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        Float32.((rand(Float32, outs, nleaves, ntrees) .- 0.5f0) .* sqrt(12) .* init_scale), # p
+        Float32.(rand(nnodes * ntrees, ins) .- 0.5f0), # w
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
         actA,
     )
     return nt
@@ -50,8 +50,8 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nleaves = 2^depth
     nt = NeuroTree(
         BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
-        Flux.glorot_uniform(nnodes * ntrees, ins), # w
-        Float32.((rand(Float32, outs, nleaves, ntrees) .- 0.5f0) .* sqrt(12) .* init_scale), # p
+        Float32.(rand(nnodes * ntrees, ins) .- 0.5f0), # w
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
         actA,
     )
     return nt
@@ -140,13 +140,15 @@ end
 
 
 function _identity_act(x)
-    return x
+    return x ./ sum(abs.(x), dims=2)
 end
 function _tanh_act(x)
-    return Flux.tanh_fast.(x)
+    x = Flux.tanh_fast.(x)
+    return x ./ sum(abs.(x), dims=2)
 end
 function _hardtanh_act(x)
-    return Flux.hardtanh.(x)
+    x = Flux.hardtanh.(x)
+    return x ./ sum(abs.(x), dims=2)
 end
 
 """
