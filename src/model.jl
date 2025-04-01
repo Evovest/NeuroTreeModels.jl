@@ -1,6 +1,6 @@
 
-struct NeuroTree{W,B,P,F<:Function}
-    bn::B
+struct NeuroTree{W,S,P,F<:Function}
+    s::S
     w::W
     p::P
     actA::F
@@ -9,14 +9,14 @@ end
 
 function node_weights(m::NeuroTree, x::AbstractMatrix{T}) where {T}
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = m.bn(m.actA(m.w) * x)
+    nw = m.s(m.actA(m.w) * x)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
 
 include("leaf_weights.jl")
 
-function (m::NeuroTree{W,B,P,F})(x::W) where {W,B,P,F}
+function (m::NeuroTree{W,S,P,F})(x::W) where {W,S,P,F}
     # [F, B] -> [N, T, B]
     nw = node_weights(m, x)
     # [N, T, B] -> [L, T, B]
@@ -38,9 +38,9 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1.
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
-        Float32.(rand(nnodes * ntrees, ins) .- 0.5f0), # w
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
+        Scale(nnodes * ntrees, Flux.sigmoid_fast),
+        Flux.kaiming_uniform(nnodes * ntrees, ins), # w
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
@@ -49,9 +49,9 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        BatchNorm(nnodes * ntrees, Flux.sigmoid_fast),
-        Float32.(rand(nnodes * ntrees, ins) .- 0.5f0), # w
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
+        Scale(nnodes * ntrees, Flux.sigmoid_fast),
+        Flux.kaiming_uniform(nnodes * ntrees, ins), # w
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
@@ -139,16 +139,16 @@ function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
 end
 
 
-function _identity_act(x)
-    return x ./ sum(abs.(x), dims=2)
+function _identity_act(w::AbstractMatrix{T}) where {T}
+    return w ./ √(T(size(w, 2)))
 end
-function _tanh_act(x)
-    x = Flux.tanh_fast.(x)
-    return x ./ sum(abs.(x), dims=2)
+function _tanh_act(w::AbstractMatrix{T}) where {T}
+    w = Flux.tanh_fast.(w)
+    return w ./ √(T(size(w, 2)))
 end
-function _hardtanh_act(x)
-    x = Flux.hardtanh.(x)
-    return x ./ sum(abs.(x), dims=2)
+function _hardtanh_act(w::AbstractMatrix{T}) where {T}
+    w = Flux.hardtanh.(w)
+    return w ./ √(T(size(w, 2)))
 end
 
 """
