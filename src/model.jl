@@ -1,7 +1,7 @@
 
-struct NeuroTree{W,S,P,F<:Function}
-    scale::S
+struct NeuroTree{W,B,P,F<:Function}
     w::W
+    b::B
     p::P
     actA::F
 end
@@ -9,14 +9,14 @@ end
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = m.scale(m.actA(m.w) * x)
+    nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
 
 include("leaf_weights.jl")
 
-function (m::NeuroTree{W,S,P,F})(x::W) where {W,S,P,F}
+function (m::NeuroTree{W,B,P,F})(x::W) where {W,B,P,F}
     # [F, B] -> [N, T, B]
     nw = node_weights(m, x)
     # [N, T, B] -> [L, T, B]
@@ -29,29 +29,29 @@ end
 dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
 
 """
-    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-2)
-    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-2)
+    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1f-2)
+    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1f-2)
 
 Initialization of a NeuroTree.
 """
-function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-2)
+function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.Scale(nnodes * ntrees), # scale
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
+        Float32.(zeros(nnodes * ntrees)), # b
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
         actA,
     )
     return nt
 end
-function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-2)
+function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Flux.Scale(nnodes * ntrees, Flux.sigmoid_fast), # scale
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
+        Float32.(zeros(nnodes * ntrees)), # b
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
         actA,
     )
     return nt
@@ -66,7 +66,7 @@ struct StackTree
 end
 @layer StackTree
 
-function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1e-2)
+function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1e-1)
     @assert stack_size == 1 || hidden_size >= outs
     trees = []
     for i in 1:stack_size

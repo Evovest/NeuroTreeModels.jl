@@ -45,7 +45,7 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:gaussian_mle,
     actA=:identity,
-    init_scale=0.0,
+    init_scale=0.1,
     nrounds=200,
     depth=4,
     ntrees=32,
@@ -53,7 +53,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     MLE_tree_split=true,
     batchsize=2048,
-    lr=1e-3,
+    lr=3e-3,
     early_stopping_rounds=2,
     device
 )

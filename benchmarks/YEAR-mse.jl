@@ -47,7 +47,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     hidden_size=8,
     batchsize=2048,
-    lr=1e-3,
+    lr=3e-3,
     early_stopping_rounds=2,
     device
 )

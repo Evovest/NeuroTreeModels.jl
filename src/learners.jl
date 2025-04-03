@@ -60,14 +60,14 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
   - `:mae`
   - `:logloss`
   - `:gaussian_mle`
-- `nrounds=100`:             Max number of rounds (epochs).
+- `nrounds=100`:            Max number of rounds (epochs).
 - `lr=1.0f-2`:              Learning rate. Must be > 0. A lower `eta` results in slower learning, typically requiring a higher `nrounds`.   
 - `wd=0.f0`:                Weight decay applied to the gradients by the optimizer.
 - `batchsize=2048`:         Batch size.
 - `actA=:tanh`:             Activation function applied to each of input variable for determination of split node weight. Can be one of:
     - `:tanh`
     - `:identity`
-- `depth=6`:            Depth of a tree. Must be >= 1. A tree of depth 1 has 2 prediction leaf nodes. A complete tree of depth N contains `2^N` terminal leaves and `2^N - 1` split nodes.
+- `depth=6`:                Depth of a tree. Must be >= 1. A tree of depth 1 has 2 prediction leaf nodes. A complete tree of depth N contains `2^N` terminal leaves and `2^N - 1` split nodes.
   Compute cost is proportional to `2^depth`. Typical optimal values are in the 3 to 5 range.
 - `ntrees=64`:              Number of trees (per stack).
 - `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
