@@ -29,8 +29,8 @@ end
 dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
 
 """
-    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1f-2)
-    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1f-2)
+    NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-1)
+    NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-1)
 
 Initialization of a NeuroTree.
 """
@@ -40,7 +40,7 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e
     nt = NeuroTree(
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
         Float32.(zeros(nnodes * ntrees)), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
@@ -51,7 +51,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nt = NeuroTree(
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
         Float32.(zeros(nnodes * ntrees)), # b
-        Float32.((rand(outs, nleaves, ntrees) .- 0.5f0) .* init_scale), # p
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
