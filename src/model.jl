@@ -39,7 +39,7 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e
     nleaves = 2^depth
     nt = NeuroTree(
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.(zeros(nnodes * ntrees)), # b
+        Float32.(rand(nnodes * ntrees) ./ 5 .- 0.1), # b
         Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
@@ -50,7 +50,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nleaves = 2^depth
     nt = NeuroTree(
         Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.(zeros(nnodes * ntrees)), # b
+        Float32.(rand(nnodes * ntrees) ./ 5 .- 0.1), # b
         Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
