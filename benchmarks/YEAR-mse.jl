@@ -61,10 +61,6 @@ config = NeuroTreeRegressor(;
     print_every_n=5
 );
 
-# nfeats = length(feature_names)
-# x = NeuroTrees.CUDA.rand(nfeats, config.batchsize);
-# m.layers[1](x)
-# m.layers[2]
 @time p_eval = m(deval; device);
 mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 @info "MSE raw - deval" mse_eval
