@@ -1,6 +1,7 @@
 
 struct NeuroTree{W,B,P,F<:Function}
     w::W
+    s::B
     b::B
     p::P
     actA::F
@@ -9,7 +10,7 @@ end
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
+    nw = Flux.sigmoid_fast.(Flux.softplus.(m.s) .* (m.actA(m.w) * x .+ m.b))
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
@@ -38,8 +39,9 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.(rand(nnodes * ntrees) ./ 5 .- 0.1), # b
+        Float32.(rand(nnodes * ntrees, ins) ./ 2 .- 0.25), # w
+        Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
+        Float32.(rand(nnodes * ntrees) ./ 2 .- 0.25), # b
         Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
@@ -49,8 +51,9 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.(rand(nnodes * ntrees, ins) ./ 5 .- 0.1), # w
-        Float32.(rand(nnodes * ntrees) ./ 5 .- 0.1), # b
+        Float32.(rand(nnodes * ntrees, ins) ./ 2 .- 0.25), # w
+        Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
+        Float32.(rand(nnodes * ntrees) ./ 2 .- 0.25), # b
         Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )

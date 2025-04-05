@@ -53,7 +53,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     MLE_tree_split=true,
     batchsize=2048,
-    lr=3e-3,
+    lr=1e-3,
     early_stopping_rounds=2,
     device
 )
@@ -74,3 +74,12 @@ mse_eval = mean((p_eval[:, 1] .- deval.y_norm) .^ 2)
 p_test = m(dtest; device);
 mse_test = mean((p_test[:, 1] .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 @info "MSE - dtest" mse_test
+
+
+using CairoMakie
+density(m.chain.layers[2].layers[1].trees[1].b)
+density(m.chain.layers[2].layers[1].trees[1].s)
+density(vec(m.chain.layers[2].layers[1].trees[1].p))
+density(vec(m.chain.layers[2].layers[1].trees[1].w))
+density(abs.(vec(m.chain.layers[2].layers[1].trees[1].w)))
+mean(abs.(vec(m.chain.layers[2].layers[1].trees[1].w)) .< 1e-1)

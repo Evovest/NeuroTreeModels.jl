@@ -35,24 +35,23 @@ select!(df_tot, Not("Column1"))
 feature_names = setdiff(names(df_tot), ["y_raw", "y_norm"])
 target_name = "y_norm"
 
-function percent_rank(x::AbstractVector{T}) where {T}
-    return tiedrank(x) / (length(x) + 1)
-end
-
-transform!(df_tot, feature_names .=> percent_rank .=> feature_names)
-
 dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
 config = NeuroTreeRegressor(
-    loss=:tweedie_deviance,
+    loss=:tweedie,
     actA=:identity,
+    init_scale=0.1,
     nrounds=200,
-    depth=4,
+    depth=5,
     ntrees=32,
+    stack_size=1,
+    hidden_size=8,
     batchsize=2048,
     lr=1e-3,
+    early_stopping_rounds=2,
+    device=:gpu
 )
 
 @time m = NeuroTreeModels.fit(
@@ -62,9 +61,6 @@ config = NeuroTreeRegressor(
     target_name,
     feature_names,
     print_every_n=5,
-    early_stopping_rounds=2,
-    metric=:tweedie_deviance,
-    device=:gpu
 );
 
 p_eval = m(deval);
