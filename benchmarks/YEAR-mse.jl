@@ -40,10 +40,10 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
-    init_scale=0.0,
+    init_scale=0.1,
     nrounds=200,
-    depth=5,
-    ntrees=32,
+    depth=4,
+    ntrees=16,
     stack_size=1,
     hidden_size=8,
     batchsize=2048,
@@ -74,6 +74,7 @@ mse_test = mean((p_test .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 using CairoMakie
 density(m.chain.layers[2].trees[1].b)
 density(m.chain.layers[2].trees[1].s)
+mean(m.chain.layers[2].trees[1].s)
 density(vec(m.chain.layers[2].trees[1].p))
 density(vec(m.chain.layers[2].trees[1].w))
 density(abs.(vec(m.chain.layers[2].trees[1].w)))

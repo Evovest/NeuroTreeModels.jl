@@ -35,26 +35,26 @@ dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)
 
 Initialization of a NeuroTree.
 """
-function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-2)
+function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.(rand(nnodes * ntrees, ins) ./ 2 .- 0.25), # w
+        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 2), # w
         Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
-        Float32.(rand(nnodes * ntrees) ./ 2 .- 0.25), # b
-        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) .* init_scale), # p
+        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 2), # b
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
 end
-function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-2)
+function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.(rand(nnodes * ntrees, ins) ./ 2 .- 0.25), # w
+        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 2), # w
         Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
-        Float32.(rand(nnodes * ntrees) ./ 2 .- 0.25), # b
-        Float32.(randn(Float32, outs, nleaves, ntrees) .* sqrt(ntrees) .* init_scale), # p
+        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 2), # b
+        Float32.((rand(outs, nleaves, ntrees) .- 0.5) .* init_scale), # p
         actA,
     )
     return nt
@@ -69,7 +69,7 @@ struct StackTree
 end
 @layer StackTree
 
-function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1e-2)
+function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1e-1)
     @assert stack_size == 1 || hidden_size >= outs
     trees = []
     for i in 1:stack_size

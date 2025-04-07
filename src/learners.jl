@@ -72,7 +72,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 - `ntrees=64`:              Number of trees (per stack).
 - `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
 - `stack_size=1`:           Number of stacked NeuroTree blocks.
-- `init_scale=1.0`:         Scaling factor applied to the predictions weights. Values in the `]0, 1]` short result in best performance. 
+- `init_scale=0.1`:         Scaling factor applied to the predictions weights. Values in the range `]0, 1]` should result in best convergence. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
 - `device=:cpu`:            Device on which to perform the computation, either `:cpu` or `:gpu`
@@ -280,7 +280,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 - `ntrees=64`:              Number of trees (per stack).
 - `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
 - `stack_size=1`:           Number of stacked NeuroTree blocks.
-- `init_scale=1.0`:         Scaling factor applied to the predictions weights. Values in the `]0, 1]` short result in best performance. 
+- `init_scale=0.1`:         Scaling factor applied to the predictions weights. Values in the range `]0, 1]` should result in best convergence. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
 - `device=:cpu`:            Device on which to perform the computation, either `:cpu` or `:gpu`

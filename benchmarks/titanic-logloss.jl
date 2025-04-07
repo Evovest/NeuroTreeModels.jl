@@ -34,9 +34,10 @@ feature_names = setdiff(names(df), ["Survived"])
 
 config = NeuroTreeRegressor(;
     loss=:logloss,
+    actA=:identity,
     nrounds=400,
     depth=4,
-    lr=3e-2,
+    lr=5e-2,
     early_stopping_rounds=3,
     device=:cpu
 )
@@ -55,7 +56,6 @@ p_eval = m(deval; device=:cpu)
 
 @info mean((p_train .> 0.5) .== (dtrain[!, target_name] .> 0.5))
 @info mean((p_eval .> 0.5) .== (deval[!, target_name] .> 0.5))
-
 
 ###################################
 # MLJ
