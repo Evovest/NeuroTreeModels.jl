@@ -5,12 +5,17 @@ struct NeuroTree{W,B,P,F<:Function}
     b::B
     p::P
     actA::F
+    scaler::Bool
 end
 @layer NeuroTree
 
 function node_weights(m::NeuroTree, x)
     # [N X T, F] * [F, B] => [N x T, B]
-    nw = Flux.sigmoid_fast.(Flux.softplus.(m.s) .* (m.actA(m.w) * x .+ m.b))
+    if m.scaler
+        nw = Flux.sigmoid_fast.(Flux.softplus.(m.s) .* (m.actA(m.w) * x .+ m.b))
+    else
+        nw = Flux.sigmoid_fast.(m.actA(m.w) * x .+ m.b)
+    end
     # [N x T, B] -> [N, T, B]
     return reshape(nw, :, size(m.p, 3), size(x, 2))
 end
@@ -35,27 +40,29 @@ dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)
 
 Initialization of a NeuroTree.
 """
-function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-1)
+function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, scaler=true, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 2), # w
+        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 4), # w
         Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
-        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 2), # b
+        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 4), # b
         Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
         actA,
+        scaler
     )
     return nt
 end
-function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, init_scale=1e-1)
+function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, scaler=true, init_scale=1e-1)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
-        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 2), # w
+        Float32.((rand(nnodes * ntrees, ins) .- 0.5) ./ 4), # w
         Float32.(fill(log(exp(1) - 1), nnodes * ntrees)), # s
-        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 2), # b
+        Float32.((rand(nnodes * ntrees) .- 0.5) ./ 4), # b
         Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
         actA,
+        scaler
     )
     return nt
 end
@@ -69,23 +76,23 @@ struct StackTree
 end
 @layer StackTree
 
-function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, init_scale=1e-1)
+function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, scaler=true, init_scale=1e-1)
     @assert stack_size == 1 || hidden_size >= outs
     trees = []
     for i in 1:stack_size
         if i == 1
             if i < stack_size
-                tree = NeuroTree(ins => hidden_size; depth, ntrees, actA, init_scale)
+                tree = NeuroTree(ins => hidden_size; depth, ntrees, actA, scaler, init_scale)
                 push!(trees, tree)
             else
-                tree = NeuroTree(ins => outs; depth, ntrees, actA, init_scale)
+                tree = NeuroTree(ins => outs; depth, ntrees, actA, scaler, init_scale)
                 push!(trees, tree)
             end
         elseif i < stack_size
-            tree = NeuroTree(hidden_size => hidden_size; depth, ntrees, actA, init_scale)
+            tree = NeuroTree(hidden_size => hidden_size; depth, ntrees, actA, scaler, init_scale)
             push!(trees, tree)
         else
-            tree = NeuroTree(hidden_size => outs; depth, ntrees, actA, init_scale)
+            tree = NeuroTree(hidden_size => outs; depth, ntrees, actA, scaler, init_scale)
             push!(trees, tree)
         end
     end
@@ -182,6 +189,7 @@ function get_model_chain(L; config, nfeats, outsize)
                     stack_size=config.stack_size,
                     hidden_size=config.hidden_size,
                     actA=act_dict[config.actA],
+                    scaler=config.scaler,
                     init_scale=config.init_scale),
                 StackTree(nfeats => outsize;
                     depth=config.depth,
@@ -189,6 +197,7 @@ function get_model_chain(L; config, nfeats, outsize)
                     stack_size=config.stack_size,
                     hidden_size=config.hidden_size,
                     actA=act_dict[config.actA],
+                    scaler=config.scaler,
                     init_scale=config.init_scale)
             )
         )
@@ -202,6 +211,7 @@ function get_model_chain(L; config, nfeats, outsize)
                 stack_size=config.stack_size,
                 hidden_size=config.hidden_size,
                 actA=act_dict[config.actA],
+                scaler=config.scaler,
                 init_scale=config.init_scale)
         )
 

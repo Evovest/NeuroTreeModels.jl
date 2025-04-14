@@ -36,6 +36,7 @@ mutable struct NeuroTreeRegressor <: MMI.Deterministic
   ntrees::Int
   hidden_size::Int
   stack_size::Int
+  scaler::Bool
   init_scale::Float32
   MLE_tree_split::Bool
   rng::AbstractRNG
@@ -72,6 +73,7 @@ A model type for constructing a NeuroTreeRegressor, based on [NeuroTreeModels.jl
 - `ntrees=64`:              Number of trees (per stack).
 - `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
 - `stack_size=1`:           Number of stacked NeuroTree blocks.
+- `scaler=true`:            Whether a learnable scaling factor, prior to the sigmoid activation, should be used. Otherwise a fixed scaling of 1.0 is used if `scaler=false`.  
 - `init_scale=0.1`:         Scaling factor applied to the predictions weights. Values in the range `]0, 1]` should result in best convergence. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
@@ -179,6 +181,7 @@ function NeuroTreeRegressor(; kwargs...)
     :ntrees => 64,
     :hidden_size => 1,
     :stack_size => 1,
+    :scaler => true,
     :init_scale => 0.1,
     :MLE_tree_split => false,
     :rng => 123,
@@ -230,6 +233,7 @@ function NeuroTreeRegressor(; kwargs...)
     args[:ntrees],
     args[:hidden_size],
     args[:stack_size],
+    args[:scaler],
     args[:init_scale],
     args[:MLE_tree_split],
     rng,
@@ -254,6 +258,7 @@ mutable struct NeuroTreeClassifier <: MMI.Probabilistic
   ntrees::Int
   hidden_size::Int
   stack_size::Int
+  scaler::Bool
   init_scale::Float32
   MLE_tree_split::Bool
   rng::AbstractRNG
@@ -280,6 +285,7 @@ A model type for constructing a NeuroTreeClassifier, based on [NeuroTreeModels.j
 - `ntrees=64`:              Number of trees (per stack).
 - `hidden_size=16`:         Size of hidden layers. Applicable only when `stack_size` > 1.
 - `stack_size=1`:           Number of stacked NeuroTree blocks.
+- `scaler=true`:            Whether a learnable scaling factor, prior to the sigmoid activation, should be used. Otherwise a fixed scaling of 1.0 is used if `scaler=false`.  
 - `init_scale=0.1`:         Scaling factor applied to the predictions weights. Values in the range `]0, 1]` should result in best convergence. 
 - `MLE_tree_split=false`:   Whether independent models are buillt for each of the 2 parameters (mu, sigma) of the the `gaussian_mle` loss.
 - `rng=123`:                Either an integer used as a seed to the random number generator or an actual random number generator (`::Random.AbstractRNG`).
@@ -385,6 +391,7 @@ function NeuroTreeClassifier(; kwargs...)
     :ntrees => 64,
     :hidden_size => 1,
     :stack_size => 1,
+    :scaler => true,
     :init_scale => 0.1,
     :MLE_tree_split => false,
     :rng => 123,
@@ -426,6 +433,7 @@ function NeuroTreeClassifier(; kwargs...)
     args[:ntrees],
     args[:hidden_size],
     args[:stack_size],
+    args[:scaler],
     args[:init_scale],
     args[:MLE_tree_split],
     rng,

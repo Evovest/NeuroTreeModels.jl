@@ -40,6 +40,7 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
+    scaler=true,
     init_scale=0.1,
     nrounds=200,
     depth=4,
