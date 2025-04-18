@@ -40,15 +40,15 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
-    scaler=true,
     init_scale=0.1,
     nrounds=200,
     depth=4,
     ntrees=32,
     stack_size=1,
-    hidden_size=8,
+    hidden_size=16,
     batchsize=2048,
     lr=1e-3,
+    # wd=1e-5,
     early_stopping_rounds=2,
     device
 )
@@ -73,10 +73,13 @@ mse_test = mean((p_test .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 # @code_warntype m(Matrix{Float32}(Matrix(dtest[1:10,feature_names])'))
 
 using CairoMakie
+density(vec(m.chain.layers[2].trees[1].w))
 density(m.chain.layers[2].trees[1].b)
 density(m.chain.layers[2].trees[1].s)
-mean(m.chain.layers[2].trees[1].s)
 density(vec(m.chain.layers[2].trees[1].p))
-density(vec(m.chain.layers[2].trees[1].w))
-density(abs.(vec(m.chain.layers[2].trees[1].w)))
-mean(abs.(vec(m.chain.layers[2].trees[1].w)) .< 1e-1)
+# mean(abs.(vec(m.chain.layers[2].trees[1].w)) .< 1e-1)
+
+std(m.chain.layers[2].trees[1].w)
+std(m.chain.layers[2].trees[1].b)
+std(m.chain.layers[2].trees[1].p)
+std(m.chain.layers[2].trees[1].s)
