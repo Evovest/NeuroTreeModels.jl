@@ -54,3 +54,37 @@ fig = plot(x=vec(db); type=:histogram)
 
 fig = plot(x=vec(p); type=:histogram)
 fig = plot(x=vec(dp); type=:histogram)
+
+
+
+using CairoMakie
+# Define the activation function
+function act_xtanhx(x)
+    return abs(x) * tanh(x)
+end
+# Define the activation function
+function act_gauss(x)
+    return x * (1 - exp(-x^2 / 0.01))
+end
+# Generate x values
+x = range(-0.1, 0.1, length=1000)
+y1 = act_xtanhx.(x)
+y2 = act_gauss.(x)
+identity_line = x  # For y = x
+
+# Create the plot
+fig = Figure()
+ax = Axis(fig[1, 1],
+    xlabel="x",
+    ylabel="f(x)",
+    title="Activation Function: f(x) = |x| * tanh(x)")
+
+lines!(ax, x, y1, color=:blue, linewidth=2, label="f(x) = |x| * tanh(x)")
+# lines!(ax, x, y2, color=:red, linewidth=2, label="f(x) = x * (1 - exp(x^2 / 0.01))")
+lines!(ax, x, identity_line, color=:gray, linestyle=:dash, alpha=0.5, label="y = x (identity)")
+# Add horizontal and vertical lines at zero
+vlines!(ax, [0], color=:black, linewidth=0.5)
+hlines!(ax, [0], color=:black, linewidth=0.5)
+# Add legend
+axislegend(ax, position=:ct)
+fig

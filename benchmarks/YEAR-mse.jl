@@ -77,7 +77,11 @@ density(vec(m.chain.layers[2].trees[1].w))
 density(m.chain.layers[2].trees[1].b)
 density(m.chain.layers[2].trees[1].s)
 density(vec(m.chain.layers[2].trees[1].p))
-# mean(abs.(vec(m.chain.layers[2].trees[1].w)) .< 1e-1)
+
+w = vec(m.chain.layers[2].trees[1].w)
+mean(abs.(w) .< 1e-2)
+mean(abs.(w) .* tanh.(w) .< 1e-2)
+density(abs.(w) .* tanh.(w))
 
 std(m.chain.layers[2].trees[1].w)
 std(m.chain.layers[2].trees[1].b)
