@@ -12,8 +12,8 @@ include("leaf_weights.jl")
 
 function (m::NeuroTree)(x::AbstractMatrix{T}) where {T}
     # [F, B] -> [N, T, B]
-    # nw = Flux.σ.(m.act.(m.w * x .+ m.b))
-    nw = Flux.σ.(m.act.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b))
+    nw = Flux.σ.(m.act.(m.w * x .+ m.b))
+    # nw = Flux.σ.(m.act.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b))
     # nw = Flux.σ.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b)
     nw = reshape(nw, :, size(m.p, 3), size(x, 2))
     # [N, T, B] -> [L, T, B]

@@ -39,7 +39,7 @@ device = :gpu
 
 config = NeuroTreeRegressor(;
     loss=:mse,
-    actA=:softplus,
+    actA=:identity,
     init_scale=0.1,
     nrounds=200,
     depth=4,
@@ -47,7 +47,7 @@ config = NeuroTreeRegressor(;
     stack_size=1,
     hidden_size=16,
     batchsize=2048,
-    lr=1e-3,
+    lr=5e-4,
     # wd=1e-5,
     early_stopping_rounds=2,
     device
@@ -78,10 +78,10 @@ density(m.chain.layers[2].trees[1].b)
 density(m.chain.layers[2].trees[1].s)
 density(vec(m.chain.layers[2].trees[1].p))
 
-w = vec(m.chain.layers[2].trees[1].w)
-mean(abs.(w) .< 1e-2)
-mean(abs.(w) .* tanh.(w) .< 1e-2)
-density(abs.(w) .* tanh.(w))
+# w = vec(m.chain.layers[2].trees[1].w)
+# mean(abs.(w) .< 1e-2)
+# mean(abs.(w) .* tanh.(w) .< 1e-2)
+# density(abs.(w) .* tanh.(w))
 
 std(m.chain.layers[2].trees[1].w)
 std(m.chain.layers[2].trees[1].b)
