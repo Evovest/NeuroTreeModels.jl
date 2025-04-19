@@ -11,14 +11,15 @@ end
 include("leaf_weights.jl")
 
 function (m::NeuroTree)(x::AbstractMatrix{T}) where {T}
-    # [F, B] -> [N, T, B]  
+    # [F, B] -> [N, T, B]
     # nw = Flux.σ.(m.act.(m.w * x .+ m.b))
-    nw = Flux.σ.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b)
+    nw = Flux.σ.(m.act.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b))
+    # nw = Flux.σ.((abs.(m.w) .* tanh.(m.w)) * x .+ m.b)
     nw = reshape(nw, :, size(m.p, 3), size(x, 2))
     # [N, T, B] -> [L, T, B]
     (_, lw) = leaf_weights!(nw)
     # [L, T, B], [P, L, T] -> [P, B]
-    pred = dot_prod_agg(lw, m.p) ./ T(size(m.p, 3))
+    pred = dot_prod_agg(lw, m.p) ./ size(m.p, 3)
     # pred = dot_prod_agg(lw, m.p) ./ T(√size(m.p, 3))
     return pred
 end
@@ -39,7 +40,7 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, act=identity, init_scale=1e-
         # Float32.((rand(nnodes * ntrees) .- 0.5)), # b
         Float32.(zeros(nnodes * ntrees)), # b
         Float32.(zeros(nnodes * ntrees) .+ log(exp(1) - 1)), # s
-        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
+        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p ./ √ntrees
         act
     )
     return nt
@@ -52,7 +53,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
         # Float32.((rand(nnodes * ntrees) .- 0.5)), # b
         Float32.(zeros(nnodes * ntrees)), # b
         Float32.(zeros(nnodes * ntrees) .+ log(exp(1) - 1)), # s
-        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
+        Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p ./ √ntrees
         act
     )
     return nt

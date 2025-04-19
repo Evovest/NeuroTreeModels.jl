@@ -44,11 +44,11 @@ device = :gpu
 
 config = NeuroTreeRegressor(;
     loss=:gaussian_mle,
-    actA=:identity,
+    actA=:softplus,
     init_scale=0.1,
     nrounds=200,
     depth=4,
-    ntrees=32,
+    ntrees=64,
     hidden_size=8,
     stack_size=1,
     MLE_tree_split=true,

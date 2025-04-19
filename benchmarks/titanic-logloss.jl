@@ -5,7 +5,6 @@ using Statistics: mean
 using StatsBase: median
 using CategoricalArrays
 using Random
-using CUDA
 using CategoricalArrays
 
 Random.seed!(123)
@@ -36,8 +35,9 @@ config = NeuroTreeRegressor(;
     loss=:logloss,
     actA=:identity,
     nrounds=400,
+    ntrees=32,
     depth=4,
-    lr=5e-2,
+    lr=3e-2,
     early_stopping_rounds=3,
     device=:cpu
 )
