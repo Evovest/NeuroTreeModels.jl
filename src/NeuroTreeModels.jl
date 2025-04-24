@@ -15,8 +15,9 @@ import Optimisers: OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, 
 
 import Flux
 import Flux: @layer, trainmode!, gradient, Chain, DataLoader, cpu, gpu
-import Flux: logσ, logsoftmax, softmax, softmax!, sigmoid, sigmoid_fast, hardsigmoid, tanh, tanh_fast, hardtanh, softplus, onecold, onehotbatch
+import Flux: onecold, onehotbatch
 import Flux: BatchNorm, Dense, MultiHeadAttention, Parallel
+import Flux: logσ, logsoftmax, sigmoid, softmax!
 
 using ChainRulesCore
 import ChainRulesCore: rrule
@@ -27,7 +28,6 @@ import MLJModelInterface: fit, update, predict, schema
 export NeuroTreeRegressor, NeuroTreeClassifier, NeuroTreeModel, NeuroTree
 
 include("data.jl")
-include("utils.jl")
 include("learners.jl")
 include("model.jl")
 include("loss.jl")

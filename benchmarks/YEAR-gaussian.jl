@@ -36,30 +36,26 @@ feature_names = setdiff(names(df_tot), ["y_raw", "y_norm"])
 target_name = "y_norm"
 offset_name = "offset"
 
-function percent_rank(x::AbstractVector{T}) where {T}
-    return tiedrank(x) / (length(x) + 1)
-end
-
-transform!(df_tot, feature_names .=> percent_rank .=> feature_names)
-
 dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
 
-config = NeuroTreeRegressor(
+device = :gpu
+
+config = NeuroTreeRegressor(;
     loss=:gaussian_mle,
     actA=:identity,
+    init_scale=0.0,
     nrounds=200,
     depth=4,
     ntrees=32,
     hidden_size=8,
     stack_size=1,
-    init_scale=0.1,
     MLE_tree_split=true,
     batchsize=2048,
     lr=1e-3,
     early_stopping_rounds=2,
-    device=:gpu
+    device
 )
 
 @time m = NeuroTreeModels.fit(
@@ -71,23 +67,19 @@ config = NeuroTreeRegressor(
     print_every_n=5
 );
 
-# dinfer_eval = NeuroTrees.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);
-dinfer_test = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
+@time p_eval = m(deval; device);
+mse_eval = mean((p_eval[:, 1] .- deval.y_norm) .^ 2)
+@info "MSE raw - deval" mse_eval
 
-# p_eval = NeuroTrees.infer(m, dinfer_eval);
-p_test = m(dinfer_test);
+p_test = m(dtest; device);
+mse_test = mean((p_test[:, 1] .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
+@info "MSE - dtest" mse_test
 
-# mean((offset_test .- y_test) .^ 2)
-mse_off = mean((p_test[:, 1] .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
-@info "MSE" mse_off
 
-# NeuroTrees.save(m, "data/YEAR/model_1_mse.bson")
-# m2 = NeuroTrees.load("data/YEAR/model_1_mse.bson")[:model]
-# NeuroTrees.save(m, "data/YEAR/model_1.bson")
-# @code_warntype Modeler.Models.NeuroTrees.infer(m, dinfer)
-
-# @time pred1 = NeuroTrees.infer(m, dinfer);
-# @time pred2 = NeuroTrees.infer(m, dinfer);
-
-# @btime pred1 = NeuroTrees.infer($m, $dinfer);
-# @btime pred2 = NeuroTrees.infer($m, $dinfer);
+using CairoMakie
+density(m.chain.layers[2].layers[1].trees[1].b)
+density(m.chain.layers[2].layers[1].trees[1].s)
+density(vec(m.chain.layers[2].layers[1].trees[1].p))
+density(vec(m.chain.layers[2].layers[1].trees[1].w))
+density(abs.(vec(m.chain.layers[2].layers[1].trees[1].w)))
+mean(abs.(vec(m.chain.layers[2].layers[1].trees[1].w)) .< 1e-1)

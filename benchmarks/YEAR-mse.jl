@@ -31,12 +31,6 @@ feature_names = setdiff(names(df_tot), ["y_raw", "y_norm", "w"])
 df_tot.w .= 1.0
 target_name = "y_norm"
 
-# function percent_rank(x::AbstractVector{T}) where {T}
-#     return tiedrank(x) / (length(x) + 1)
-# end
-
-# transform!(df_tot, feature_names .=> percent_rank .=> feature_names)
-
 dtrain = df_tot[train_idx, :];
 deval = df_tot[eval_idx, :];
 dtest = df_tot[(end-51630+1):end, :];
@@ -46,14 +40,15 @@ device = :gpu
 config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
-    init_scale=1.0,
+    scaler=true,
+    init_scale=0.1,
     nrounds=200,
     depth=4,
     ntrees=32,
     stack_size=1,
-    hidden_size=1,
+    hidden_size=8,
     batchsize=2048,
-    lr=3e-4,
+    lr=1e-3,
     early_stopping_rounds=2,
     device
 )
@@ -67,10 +62,6 @@ config = NeuroTreeRegressor(;
     print_every_n=5
 );
 
-# nfeats = length(feature_names)
-# x = NeuroTrees.CUDA.rand(nfeats, config.batchsize);
-# m.layers[1](x)
-# m.layers[2]
 @time p_eval = m(deval; device);
 mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 @info "MSE raw - deval" mse_eval
@@ -78,3 +69,14 @@ mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 p_test = m(dtest; device);
 mse_test = mean((p_test .- dtest.y_norm) .^ 2) * std(df_tot.y_raw)^2
 @info "MSE - dtest" mse_test
+
+# @code_warntype m(Matrix{Float32}(Matrix(dtest[1:10,feature_names])'))
+
+using CairoMakie
+density(m.chain.layers[2].trees[1].b)
+density(m.chain.layers[2].trees[1].s)
+mean(m.chain.layers[2].trees[1].s)
+density(vec(m.chain.layers[2].trees[1].p))
+density(vec(m.chain.layers[2].trees[1].w))
+density(abs.(vec(m.chain.layers[2].trees[1].w)))
+mean(abs.(vec(m.chain.layers[2].trees[1].w)) .< 1e-1)
