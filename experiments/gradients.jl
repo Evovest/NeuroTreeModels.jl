@@ -60,7 +60,7 @@ fig = plot(x=vec(dp); type=:histogram)
 using CairoMakie
 # Define the activation function
 function act_xtanhx(x)
-    return abs(x) * tanh(x)
+    return abs(x) * tanh(x/0.2)
 end
 # Define the activation function
 function act_gauss(x)
@@ -82,7 +82,7 @@ end
 
 
 # Generate x values
-x = range(-2.0, 2.0, length=1000)
+x = range(-0.1, 0.1, length=1000)
 y1 = act_xtanhx.(x)
 dy1 = diff_act_xtanhx.(x)
 y2 = act_gauss.(x)
