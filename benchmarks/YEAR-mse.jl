@@ -1,10 +1,10 @@
-using Revise
 using Random
 using CSV
 using DataFrames
 using StatsBase
 using Statistics: mean, std
 using NeuroTreeModels
+# using Flux
 
 using AWS: AWSCredentials, AWSConfig, @service
 @service S3
@@ -41,15 +41,15 @@ config = NeuroTreeRegressor(;
     loss=:mse,
     actA=:identity,
     scaler=true,
-    init_scale=0.1,
+    init_scale=0.0,
     nrounds=200,
-    depth=4,
-    ntrees=32,
+    depth=6,
+    ntrees=64,
     stack_size=1,
     hidden_size=8,
     batchsize=2048,
-    lr=1e-3,
-    early_stopping_rounds=2,
+    lr=1e-1,
+    early_stopping_rounds=200,
     device
 )
 
@@ -62,7 +62,11 @@ config = NeuroTreeRegressor(;
     print_every_n=5
 );
 
-@time p_eval = m(deval; device);
+p_train = m(dtrain; device);
+mse_train = mean((p_train .- dtrain.y_norm) .^ 2)
+@info "MSE raw - dtrain" mse_train
+
+p_eval = m(deval; device);
 mse_eval = mean((p_eval .- deval.y_norm) .^ 2)
 @info "MSE raw - deval" mse_eval
 
@@ -80,3 +84,20 @@ density(vec(m.chain.layers[2].trees[1].p))
 density(vec(m.chain.layers[2].trees[1].w))
 density(abs.(vec(m.chain.layers[2].trees[1].w)))
 mean(abs.(vec(m.chain.layers[2].trees[1].w)) .< 1e-1)
+
+mask = NeuroTreeModels.get_mask(Val(:binary), 4)
+mask = NeuroTreeModels.get_mask(Val(:oblivious), 4)
+
+fig = Figure(; size=(450, 450))
+ax = Axis(fig[1, 1];
+    xlabel="Nodes",
+    ylabel="Leaves",
+    aspect=DataAspect(),
+    xticks=collect(1:size(mask, 1)),
+    yticks=collect(1:size(mask, 2)),
+    xgridcolor=:lightgrey,
+    ygridcolor=:lightgrey
+)
+hm = heatmap!(ax, 1:size(mask, 1)+1, 1:size(mask, 2)+1, mask, colormap=[:white, "#1f4e79"])
+translate!(hm, 0, 0, -100)
+fig
