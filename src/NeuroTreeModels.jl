@@ -11,7 +11,8 @@ using CUDA
 using CUDA: CuIterator
 
 import Optimisers
-import Optimisers: OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, Momentum, AdaDelta
+import Optimisers:
+    OptimiserChain, WeightDecay, Adam, NAdam, Nesterov, Descent, Momentum, AdaDelta
 
 import Flux
 import Flux: @layer, trainmode!, gradient, Chain, DataLoader, cpu, gpu

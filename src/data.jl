@@ -13,25 +13,37 @@ end
 
 length(data::ContainerTrain) = size(data.x, 2)
 
-function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:Nothing,D<:Nothing}
+function getindex(
+    data::ContainerTrain{A,B,C,D},
+    idx::AbstractVector,
+) where {A,B,C<:Nothing,D<:Nothing}
     x = data.x[:, idx]
     y = data.y[idx]
     return (x, y)
 end
-function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:Nothing}
+function getindex(
+    data::ContainerTrain{A,B,C,D},
+    idx::AbstractVector,
+) where {A,B,C<:AbstractVector,D<:Nothing}
     x = data.x[:, idx]
     y = data.y[idx]
     w = data.w[idx]
     return (x, y, w)
 end
-function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:AbstractVector}
+function getindex(
+    data::ContainerTrain{A,B,C,D},
+    idx::AbstractVector,
+) where {A,B,C<:AbstractVector,D<:AbstractVector}
     x = data.x[:, idx]
     y = data.y[idx]
     w = data.w[idx]
     offset = data.offset[idx]
     return (x, y, w, offset)
 end
-function getindex(data::ContainerTrain{A,B,C,D}, idx::AbstractVector) where {A,B,C<:AbstractVector,D<:AbstractMatrix}
+function getindex(
+    data::ContainerTrain{A,B,C,D},
+    idx::AbstractVector,
+) where {A,B,C<:AbstractVector,D<:AbstractMatrix}
     x = data.x[:, idx]
     y = data.y[idx]
     w = data.w[idx]
@@ -44,11 +56,12 @@ function get_df_loader_train(
     df::AbstractDataFrame;
     feature_names,
     target_name,
-    weight_name=nothing,
-    offset_name=nothing,
+    weight_name = nothing,
+    offset_name = nothing,
     batchsize,
-    shuffle=true,
-    device=:cpu)
+    shuffle = true,
+    device = :cpu,
+)
 
     feature_names = Symbol.(feature_names)
     x = Matrix{Float32}(Matrix{Float32}(select(df, feature_names))')
@@ -64,12 +77,13 @@ function get_df_loader_train(
     offset = if isnothing(offset_name)
         nothing
     else
-        isa(offset_name, String) ? Float32.(df[!, offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
+        isa(offset_name, String) ? Float32.(df[!, offset_name]) :
+        offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
     end
 
     container = ContainerTrain(x, y, w, offset)
     batchsize = min(batchsize, length(container))
-    dtrain = DataLoader(container; shuffle, batchsize, partial=true, parallel=false)
+    dtrain = DataLoader(container; shuffle, batchsize, partial = true, parallel = false)
     if device == :gpu
         return CuIterator(dtrain)
     else
@@ -93,12 +107,18 @@ function getindex(data::ContainerInfer{A,D}, idx::AbstractVector) where {A,D<:No
     x = data.x[:, idx]
     return x
 end
-function getindex(data::ContainerTrain{A,D}, idx::AbstractVector) where {A,D<:AbstractVector}
+function getindex(
+    data::ContainerTrain{A,D},
+    idx::AbstractVector,
+) where {A,D<:AbstractVector}
     x = data.x[:, idx]
     offset = data.offset[idx]
     return (x, offset)
 end
-function getindex(data::ContainerTrain{A,D}, idx::AbstractVector) where {A,D<:AbstractMatrix}
+function getindex(
+    data::ContainerTrain{A,D},
+    idx::AbstractVector,
+) where {A,D<:AbstractMatrix}
     x = data.x[:, idx]
     offset = data.offset[:, idx]
     return (x, offset)
@@ -107,9 +127,10 @@ end
 function get_df_loader_infer(
     df::AbstractDataFrame;
     feature_names,
-    offset_name=nothing,
+    offset_name = nothing,
     batchsize,
-    device=:cpu)
+    device = :cpu,
+)
 
     feature_names = Symbol.(feature_names)
     x = Matrix{Float32}(Matrix{Float32}(select(df, feature_names))')
@@ -117,12 +138,14 @@ function get_df_loader_infer(
     offset = if isnothing(offset_name)
         nothing
     else
-        isa(offset_name, String) ? Float32.(df[!, offset_name]) : offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
+        isa(offset_name, String) ? Float32.(df[!, offset_name]) :
+        offset = Matrix{Float32}(Matrix{Float32}(df[!, data.offset_name])')
     end
 
     container = ContainerInfer(x, offset)
     batchsize = min(batchsize, length(container))
-    dinfer = DataLoader(container; shuffle=false, batchsize, partial=true, parallel=false)
+    dinfer =
+        DataLoader(container; shuffle = false, batchsize, partial = true, parallel = false)
     if device == :gpu
         return CuIterator(dinfer)
     else

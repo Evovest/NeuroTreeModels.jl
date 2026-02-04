@@ -19,14 +19,15 @@ batchsize = 32
 # CPU
 ###################################
 device = :cpu
-dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
+dtrain =
+    NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
 
 for d in dtrain
     @info length(d)
     @info size(d[1])
 end
 
-deval = NeuroTreeModels.get_df_loader_infer(df; feature_names, batchsize=32)
+deval = NeuroTreeModels.get_df_loader_infer(df; feature_names, batchsize = 32)
 for d in deval
     @info size(d)
 end
@@ -35,14 +36,15 @@ end
 # GPU
 ###################################
 device = :gpu
-dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
+dtrain =
+    NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
 
 for d in dtrain
     @info length(d)
     @info size(d[1])
 end
 
-deval = NeuroTreeModels.get_df_loader_infer(df; feature_names, batchsize=32)
+deval = NeuroTreeModels.get_df_loader_infer(df; feature_names, batchsize = 32)
 for d in deval
     @info size(d)
 end
@@ -59,7 +61,8 @@ x = rand(nobs, nfeats);
 df = DataFrame(x, :auto);
 df.y = categorical(rand(1:2, nobs));
 
-dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
+dtrain =
+    NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, batchsize, device)
 for d in dtrain
     @info length(d)
     @info size(d[1])

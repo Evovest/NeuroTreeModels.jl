@@ -9,7 +9,7 @@ using AWS: AWSCredentials, AWSConfig, @service
 @service S3
 
 aws_creds = AWSCredentials(ENV["AWS_ACCESS_KEY_ID_JDB"], ENV["AWS_SECRET_ACCESS_KEY_JDB"])
-aws_config = AWSConfig(; creds=aws_creds, region="ca-central-1")
+aws_config = AWSConfig(; creds = aws_creds, region = "ca-central-1")
 
 path = "share/data/aicrowd/insurance-aicrowd.csv"
 raw = S3.get_object(
@@ -42,7 +42,7 @@ setdiff(feature_names, names(df))
 
 seed!(123)
 nobs = nrow(df)
-id_train = sample(1:nobs, Int(round(0.8 * nobs)), replace=false)
+id_train = sample(1:nobs, Int(round(0.8 * nobs)), replace = false)
 
 dtrain = dropmissing(df[id_train, [feature_names..., target_name]])
 deval = dropmissing(df[Not(id_train), [feature_names..., target_name]])
@@ -51,16 +51,16 @@ deval = dropmissing(df[Not(id_train), [feature_names..., target_name]])
 # NeuroTrees
 ##############################
 config = NeuroTreeRegressor(
-    loss=:logloss,
-    nrounds=400,
-    actA=:tanh,
-    depth=4,
-    ntrees=32,
-    batchsize=4096,
-    rng=123,
-    lr=3e-3,
-    early_stopping_rounds=5,
-    device=:gpu
+    loss = :logloss,
+    nrounds = 400,
+    actA = :tanh,
+    depth = 4,
+    ntrees = 32,
+    batchsize = 4096,
+    rng = 123,
+    lr = 3e-3,
+    early_stopping_rounds = 5,
+    device = :gpu,
 )
 
 @time m = NeuroTreeModels.fit(
@@ -69,27 +69,29 @@ config = NeuroTreeRegressor(
     deval,
     feature_names,
     target_name,
-    print_every_n=5,
+    print_every_n = 5,
 );
 pred_eval_neuro = m(deval)
 
 ##############################
 # EvoTrees
 ##############################
-config = EvoTreeRegressor(T=Float32,
-    loss=:logistic,
-    nrounds=1000,
-    eta=0.02,
-    L2=1,
-    lambda=0.02,
-    nbins=32,
-    max_depth=5,
-    rowsample=0.5,
-    colsample=0.8,
-    early_stopping_rounds=50
+config = EvoTreeRegressor(
+    T = Float32,
+    loss = :logistic,
+    nrounds = 1000,
+    eta = 0.02,
+    L2 = 1,
+    lambda = 0.02,
+    nbins = 32,
+    max_depth = 5,
+    rowsample = 0.5,
+    colsample = 0.8,
+    early_stopping_rounds = 50,
 )
 
-@time m = EvoTrees.fit(config, dtrain; deval, feature_names, target_name, print_every_n=25);
+@time m =
+    EvoTrees.fit(config, dtrain; deval, feature_names, target_name, print_every_n = 25);
 pred_eval_evo = m(deval)
 
 function logloss(p::Vector{T}, y::Vector{T}) where {T<:AbstractFloat}

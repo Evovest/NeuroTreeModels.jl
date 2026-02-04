@@ -13,18 +13,24 @@ using AWS: AWSCredentials, AWSConfig, @service
 
 @service S3
 aws_creds = AWSCredentials(ENV["AWS_ACCESS_KEY_ID_JDB"], ENV["AWS_SECRET_ACCESS_KEY_JDB"])
-aws_config = AWSConfig(; creds=aws_creds, region="ca-central-1")
+aws_config = AWSConfig(; creds = aws_creds, region = "ca-central-1")
 bucket = "jeremiedb"
 
 # initial prep
-function read_libsvm_aws(file::String; has_query=false, aws_config=AWSConfig())
-    raw = S3.get_object("jeremiedb", file, Dict("response-content-type" => "application/octet-stream"); aws_config)
+function read_libsvm_aws(file::String; has_query = false, aws_config = AWSConfig())
+    raw = S3.get_object(
+        "jeremiedb",
+        file,
+        Dict("response-content-type" => "application/octet-stream");
+        aws_config,
+    )
     return read_libsvm(raw; has_query)
 end
 
-@time train_raw = read_libsvm_aws("share/data/msrank/train.txt"; has_query=true, aws_config);
-@time eval_raw = read_libsvm_aws("share/data/msrank/vali.txt"; has_query=true, aws_config);
-@time test_raw = read_libsvm_aws("share/data/msrank/test.txt"; has_query=true, aws_config);
+@time train_raw =
+    read_libsvm_aws("share/data/msrank/train.txt"; has_query = true, aws_config);
+@time eval_raw = read_libsvm_aws("share/data/msrank/vali.txt"; has_query = true, aws_config);
+@time test_raw = read_libsvm_aws("share/data/msrank/test.txt"; has_query = true, aws_config);
 
 dtrain = DataFrame(train_raw[:x], :auto)
 dtrain.y_raw = train_raw[:y]
@@ -53,17 +59,17 @@ transform!(deval, feature_names .=> percent_rank .=> feature_names)
 transform!(dtest, feature_names .=> percent_rank .=> feature_names)
 
 config = NeuroTreeRegressor(
-    loss=:mse,
-    nrounds=2,
-    actA=:tanh,
-    depth=4,
-    ntrees=64,
-    stack_size=2,
-    hidden_size=16,
-    batchsize=4096,
-    lr=3e-4,
-    early_stopping_rounds=3,
-    device=:gpu,
+    loss = :mse,
+    nrounds = 2,
+    actA = :tanh,
+    depth = 4,
+    ntrees = 64,
+    stack_size = 2,
+    hidden_size = 16,
+    batchsize = 4096,
+    lr = 3e-4,
+    early_stopping_rounds = 3,
+    device = :gpu,
 )
 
 @time m = NeuroTreeModels.fit(
@@ -72,7 +78,7 @@ config = NeuroTreeRegressor(
     deval,
     target_name,
     feature_names,
-    print_every_n=1,
+    print_every_n = 1,
 );
 
 p_eval = m(deval);

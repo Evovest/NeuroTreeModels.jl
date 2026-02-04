@@ -8,9 +8,9 @@ sigmoid(x::AbstractVector) = sigmoid.(x)
         failures, summary = MLJTestInterface.test(
             [NeuroTreeRegressor],
             MLJTestInterface.make_regression()...;
-            mod=@__MODULE__,
-            verbosity=0, # bump to debug
-            throw=true # set to true to debug
+            mod = @__MODULE__,
+            verbosity = 0, # bump to debug
+            throw = true, # set to true to debug
         )
         @test isempty(failures)
     end
@@ -19,18 +19,18 @@ sigmoid(x::AbstractVector) = sigmoid.(x)
         failures, summary = MLJTestInterface.test(
             [NeuroTreeClassifier],
             MLJTestInterface.make_binary()...;
-            mod=@__MODULE__,
-            verbosity=0, # bump to debug
-            throw=true # set to true to debug
+            mod = @__MODULE__,
+            verbosity = 0, # bump to debug
+            throw = true, # set to true to debug
         )
         @test isempty(failures)
 
         failures, summary = MLJTestInterface.test(
             [NeuroTreeClassifier],
             MLJTestInterface.make_multiclass()...;
-            mod=@__MODULE__,
-            verbosity=0, # bump to debug
-            throw=true # set to true to debug
+            mod = @__MODULE__,
+            verbosity = 0, # bump to debug
+            throw = true, # set to true to debug
         )
         @test isempty(failures)
 
@@ -50,13 +50,13 @@ end
     y = Y
     X = MLJBase.table(X)
 
-    tree_model = NeuroTreeRegressor(max_depth=5, eta=0.05, nrounds=10)
+    tree_model = NeuroTreeRegressor(max_depth = 5, eta = 0.05, nrounds = 10)
     mach = machine(tree_model, X, y)
-    train, test = partition(eachindex(y), 0.7, shuffle=true) # 70:30 split
-    fit!(mach, rows=train, verbosity=1)
+    train, test = partition(eachindex(y), 0.7, shuffle = true) # 70:30 split
+    fit!(mach, rows = train, verbosity = 1)
 
     mach.model.nrounds += 10
-    fit!(mach, rows=train, verbosity=1)
+    fit!(mach, rows = train, verbosity = 1)
     _report = report(mach)
 
     # predict on train data
@@ -82,7 +82,7 @@ end
 end
 
 @testset "MLJ - named tuples - NeuroTreeRegressor" begin
-    X, y = (x1=rand(100), x2=rand(100)), rand(100)
+    X, y = (x1 = rand(100), x2 = rand(100)), rand(100)
     booster = NeuroTreeRegressor()
     # smoke tests:
     mach = machine(booster, X, y) |> fit!
@@ -94,20 +94,15 @@ end
 @testset "MLJ - classification" begin
     X, y = @load_crabs
 
-    tree_model = NeuroTreeClassifier(
-        depth=4,
-        lr=0.1,
-        nrounds=20,
-        batchsize=64
-    )
+    tree_model = NeuroTreeClassifier(depth = 4, lr = 0.1, nrounds = 20, batchsize = 64)
 
     # @load EvoTreeRegressor
     mach = machine(tree_model, X, y)
-    train, test = partition(eachindex(y), 0.7, shuffle=true) # 70:30 split
-    fit!(mach, rows=train, verbosity=1)
+    train, test = partition(eachindex(y), 0.7, shuffle = true) # 70:30 split
+    fit!(mach, rows = train, verbosity = 1)
 
     mach.model.nrounds += 50
-    fit!(mach, rows=train, verbosity=1)
+    fit!(mach, rows = train, verbosity = 1)
 
     pred_train = predict(mach, selectrows(X, train))
     pred_train_mode = predict_mode(mach, selectrows(X, train))
@@ -120,7 +115,7 @@ end
 end
 
 @testset "MLJ - support for ordered factor predictions" begin
-    X = (; x=rand(10))
+    X = (; x = rand(10))
     y = coerce(rand("ab", 10), OrderedFactor)
     model = NeuroTreeClassifier()
     mach = machine(model, X, y) |> fit!

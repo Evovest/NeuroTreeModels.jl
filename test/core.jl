@@ -1,16 +1,16 @@
 @testset "Core - internals test" begin
 
     config = NeuroTreeRegressor(
-        loss=:mse,
-        actA=:identity,
-        init_scale=1.0,
-        nrounds=200,
-        depth=4,
-        ntrees=32,
-        stack_size=1,
-        hidden_size=1,
-        batchsize=2048,
-        lr=1e-3,
+        loss = :mse,
+        actA = :identity,
+        init_scale = 1.0,
+        nrounds = 200,
+        depth = 4,
+        ntrees = 32,
+        stack_size = 1,
+        hidden_size = 1,
+        batchsize = 2048,
+        lr = 1e-3,
     )
 
     # stack tree
@@ -23,11 +23,7 @@
     loss = NeuroTreeModels.get_loss_fn(config)
     L = NeuroTreeModels.get_loss_type(config)
     chain = NeuroTreeModels.get_model_chain(L; config, nfeats, outsize)
-    info = Dict(
-        :device => :cpu,
-        :nrounds => 0,
-        :feature_names => feature_names
-    )
+    info = Dict(:device => :cpu, :nrounds => 0, :feature_names => feature_names)
     m = NeuroTreeModel(L, chain, info)
 
 end
@@ -42,32 +38,16 @@ end
     feature_names = setdiff(names(df), [target_name])
 
     train_ratio = 0.8
-    train_indices = randperm(nrow(df))[1:Int(train_ratio * nrow(df))]
+    train_indices = randperm(nrow(df))[1:Int(train_ratio*nrow(df))]
 
     dtrain = df[train_indices, :]
     deval = df[setdiff(1:nrow(df), train_indices), :]
 
-    config = NeuroTreeRegressor(
-        loss=:mse,
-        nrounds=20,
-        depth=3,
-        lr=1e-1,
-    )
+    config = NeuroTreeRegressor(loss = :mse, nrounds = 20, depth = 3, lr = 1e-1)
 
-    m = NeuroTreeModels.fit(
-        config,
-        dtrain;
-        target_name,
-        feature_names
-    )
+    m = NeuroTreeModels.fit(config, dtrain; target_name, feature_names)
 
-    m = NeuroTreeModels.fit(
-        config,
-        dtrain;
-        target_name,
-        feature_names,
-        deval
-    )
+    m = NeuroTreeModels.fit(config, dtrain; target_name, feature_names, deval)
 
 end
 
@@ -81,26 +61,21 @@ end
     feature_names = setdiff(names(df), [target_name])
 
     train_ratio = 0.8
-    train_indices = randperm(nrow(df))[1:Int(train_ratio * nrow(df))]
+    train_indices = randperm(nrow(df))[1:Int(train_ratio*nrow(df))]
 
     dtrain = df[train_indices, :]
     deval = df[setdiff(1:nrow(df), train_indices), :]
 
     config = NeuroTreeClassifier(
-        nrounds=100,
-        depth=4,
-        lr=3e-2,
-        batchsize=64,
-        early_stopping_rounds=10,
-        device=:cpu)
-
-    m = NeuroTreeModels.fit(
-        config,
-        dtrain;
-        deval,
-        target_name,
-        feature_names
+        nrounds = 100,
+        depth = 4,
+        lr = 3e-2,
+        batchsize = 64,
+        early_stopping_rounds = 10,
+        device = :cpu,
     )
+
+    m = NeuroTreeModels.fit(config, dtrain; deval, target_name, feature_names)
 
     # Predictions depend on the number of samples in the dataset
     ptrain = [argmax(x) for x in eachrow(m(dtrain))]

@@ -10,11 +10,11 @@ using AWS: AWSCredentials, AWSConfig, @service
 
 @service S3
 aws_creds = AWSCredentials(ENV["AWS_ACCESS_KEY_ID_JDB"], ENV["AWS_SECRET_ACCESS_KEY_JDB"])
-aws_config = AWSConfig(; creds=aws_creds, region="ca-central-1")
+aws_config = AWSConfig(; creds = aws_creds, region = "ca-central-1")
 bucket = "jeremiedb"
 
 path = "share/data/higgs/HIGGS.arrow"
-df_tot = Connectors.read_arrow_aws(path; bucket="jeremiedb", aws_config)
+df_tot = Connectors.read_arrow_aws(path; bucket = "jeremiedb", aws_config)
 
 rename!(df_tot, "Column1" => "y")
 feature_names = setdiff(names(df_tot), ["y"])
@@ -26,21 +26,21 @@ target_name = "y"
 
 # transform!(df_tot, feature_names .=> percent_rank .=> feature_names)
 
-dtrain = df_tot[1:end-1_000_000, :];
-deval = df_tot[end-1_000_000+1:end-500_000, :];
-dtest = df_tot[end-500_000+1:end, :];
+dtrain = df_tot[1:(end-1_000_000), :];
+deval = df_tot[(end-1_000_000+1):(end-500_000), :];
+dtest = df_tot[(end-500_000+1):end, :];
 
 config = NeuroTreeRegressor(
-    loss=:logloss,
-    nrounds=200,
-    depth=4,
-    lr=2e-3,
-    ntrees=128,
-    stack_size=2,
-    hidden_size=16,
-    batchsize=8092,
-    early_stopping_rounds=2,
-    device=:gpu,
+    loss = :logloss,
+    nrounds = 200,
+    depth = 4,
+    lr = 2e-3,
+    ntrees = 128,
+    stack_size = 2,
+    hidden_size = 16,
+    batchsize = 8092,
+    early_stopping_rounds = 2,
+    device = :gpu,
 )
 
 @time m = NeuroTreeModels.fit(
@@ -49,15 +49,25 @@ config = NeuroTreeRegressor(
     deval,
     target_name,
     feature_names,
-    print_every_n=1
+    print_every_n = 1,
 );
 
-dinfer_eval = NeuroTreeModels.get_df_loader_infer(deval; feature_names, batchsize=config.batchsize, device=config.device);
+dinfer_eval = NeuroTreeModels.get_df_loader_infer(
+    deval;
+    feature_names,
+    batchsize = config.batchsize,
+    device = config.device,
+);
 p_eval = m(dinfer_eval);
 error_eval = 1 - mean(round.(Int, p_eval) .== deval.y)
 @info "ERROR - deval" error_eval
 
-dinfer_test = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
+dinfer_test = NeuroTreeModels.get_df_loader_infer(
+    dtest;
+    feature_names,
+    batchsize = config.batchsize,
+    device = config.device,
+);
 p_test = m(dinfer_test);
 error_test = 1 - mean(round.(Int, p_test) .== dtest.y)
 @info "ERROR - dtest" error_test
@@ -82,4 +92,3 @@ error_test = 1 - mean(round.(Int, p_test) .== dtest.y)
 # 34568.885039 seconds (7.51 G allocations: 1.109 TiB, 1.01% gc time)
 # ┌ Info: ERROR - dtest
 # └   error_test = 0.22153599999999996
-

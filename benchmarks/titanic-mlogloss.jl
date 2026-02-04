@@ -27,7 +27,7 @@ transform!(df, :Age => (x -> coalesce.(x, median(skipmissing(x)))) => :Age);
 df = df[:, Not([:PassengerId, :Name, :Embarked, :Cabin, :Ticket])]
 
 train_ratio = 0.8
-train_indices = randperm(nrow(df))[1:Int(round(train_ratio * nrow(df)))]
+train_indices = randperm(nrow(df))[1:Int(round(train_ratio*nrow(df)))]
 
 dtrain = df[train_indices, :]
 deval = df[setdiff(1:nrow(df), train_indices), :]
@@ -37,11 +37,11 @@ feature_names = setdiff(names(df), ["y_cat", "Survived"])
 
 eltype(dtrain[:, "y_cat"])
 config = NeuroTreeClassifier(
-    nrounds=400,
-    depth=4,
-    lr=3e-2,
-    early_stopping_rounds=3,
-    device=:cpu
+    nrounds = 400,
+    depth = 4,
+    lr = 3e-2,
+    early_stopping_rounds = 3,
+    device = :cpu,
 )
 
 m = NeuroTreeModels.fit(
@@ -50,7 +50,7 @@ m = NeuroTreeModels.fit(
     deval,
     target_name,
     feature_names,
-    print_every_n=10,
+    print_every_n = 10,
 )
 
 p_train = m(dtrain)

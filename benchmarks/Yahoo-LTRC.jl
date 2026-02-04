@@ -15,23 +15,28 @@ using NeuroTreeModels
 using AWS: AWSCredentials, AWSConfig, @service
 @service S3
 aws_creds = AWSCredentials(ENV["AWS_ACCESS_KEY_ID_JDB"], ENV["AWS_SECRET_ACCESS_KEY_JDB"])
-aws_config = AWSConfig(; creds=aws_creds, region="ca-central-1")
+aws_config = AWSConfig(; creds = aws_creds, region = "ca-central-1")
 
-function read_libsvm_aws(file::String; has_query=false, aws_config=AWSConfig())
-    raw = S3.get_object("jeremiedb", file, Dict("response-content-type" => "application/octet-stream"); aws_config)
+function read_libsvm_aws(file::String; has_query = false, aws_config = AWSConfig())
+    raw = S3.get_object(
+        "jeremiedb",
+        file,
+        Dict("response-content-type" => "application/octet-stream");
+        aws_config,
+    )
     return read_libsvm(raw; has_query)
 end
 
-function ndcg(p, y, k=10)
+function ndcg(p, y, k = 10)
     k = min(k, length(p))
-    p_order = partialsortperm(p, 1:k, rev=true)
-    y_order = partialsortperm(y, 1:k, rev=true)
+    p_order = partialsortperm(p, 1:k, rev = true)
+    y_order = partialsortperm(y, 1:k, rev = true)
     _y = y[p_order]
     gains = 2 .^ _y .- 1
     discounts = log2.((1:k) .+ 1)
     ndcg = sum(gains ./ discounts)
 
-    y_order = partialsortperm(y, 1:k, rev=true)
+    y_order = partialsortperm(y, 1:k, rev = true)
     _y = y[y_order]
     gains = 2 .^ _y .- 1
     discounts = log2.((1:k) .+ 1)
@@ -40,9 +45,12 @@ function ndcg(p, y, k=10)
     return idcg == 0 ? 1.0 : ndcg / idcg
 end
 
-@time train_raw = read_libsvm_aws("share/data/yahoo-ltrc/set1.train.txt"; has_query=true, aws_config);
-@time eval_raw = read_libsvm_aws("share/data/yahoo-ltrc/set1.valid.txt"; has_query=true, aws_config);
-@time test_raw = read_libsvm_aws("share/data/yahoo-ltrc/set1.test.txt"; has_query=true, aws_config);
+@time train_raw =
+    read_libsvm_aws("share/data/yahoo-ltrc/set1.train.txt"; has_query = true, aws_config);
+@time eval_raw =
+    read_libsvm_aws("share/data/yahoo-ltrc/set1.valid.txt"; has_query = true, aws_config);
+@time test_raw =
+    read_libsvm_aws("share/data/yahoo-ltrc/set1.test.txt"; has_query = true, aws_config);
 
 colsums_train = map(sum, eachcol(train_raw[:x]))
 # colsums_eval = map(sum, eachcol(eval_raw[:x]))
@@ -61,9 +69,9 @@ x_train_miss = x_train .== 0
 x_eval_miss = x_eval .== 0
 x_test_miss = x_test .== 0
 
-x_train[x_train.==0] .= 0.5
-x_eval[x_eval.==0] .= 0.5
-x_test[x_test.==0] .= 0.5
+x_train[x_train .== 0] .= 0.5
+x_eval[x_eval .== 0] .= 0.5
+x_test[x_test .== 0] .= 0.5
 
 x_train = hcat(x_train, x_train_miss)
 x_eval = hcat(x_eval, x_eval_miss)
@@ -94,20 +102,20 @@ target_name = "y"
 # training
 #####################################
 config = NeuroTreeRegressor(
-    loss=:logloss,
-    nrounds=400,
-    actA=:identity,
-    init_scale=1.0,
-    scaler=true,
-    depth=4,
-    ntrees=256,
-    hidden_size=1,
-    stack_size=1,
-    batchsize=1024,
-    shuffle=true,
-    lr=3e-4,
-    metric=:logloss,
-    device=:gpu
+    loss = :logloss,
+    nrounds = 400,
+    actA = :identity,
+    init_scale = 1.0,
+    scaler = true,
+    depth = 4,
+    ntrees = 256,
+    hidden_size = 1,
+    stack_size = 1,
+    batchsize = 1024,
+    shuffle = true,
+    lr = 3e-4,
+    metric = :logloss,
+    device = :gpu,
 )
 
 @time m = NeuroTreeModels.fit(
@@ -116,13 +124,18 @@ config = NeuroTreeRegressor(
     deval,
     target_name,
     feature_names,
-    print_every_n=5
+    print_every_n = 5,
 );
 
-dinfer = NeuroTreeModels.get_df_loader_infer(dtest; feature_names, batchsize=config.batchsize, device=config.device);
+dinfer = NeuroTreeModels.get_df_loader_infer(
+    dtest;
+    feature_names,
+    batchsize = config.batchsize,
+    device = config.device,
+);
 p_test = m(dinfer) .* 4;
 
-test_df = DataFrame(p=p_test, y=dtest.y_raw, q=dtest.q)
+test_df = DataFrame(p = p_test, y = dtest.y_raw, q = dtest.q)
 test_df_agg = combine(groupby(test_df, "q"), ["p", "y"] => ndcg => "ndcg")
 ndcg_test = mean(test_df_agg.ndcg)
 mse_test = mean((p_test .- dtest.y_raw) .^ 2)

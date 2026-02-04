@@ -35,13 +35,10 @@ config = Dict(
     :batch_size => 2048,
     :shuffle => true,
     :early_stopping_rounds => 0,
-    :opt => Dict(
-        :type => "nadam",
-        :lr => 1e-3,
-        :rho => 0.9)
+    :opt => Dict(:type => "nadam", :lr => 1e-3, :rho => 0.9),
 )
 
-@time NeuroTreeModels.fit!(loss, θ, dtrain, opt, nrounds=1, cb=cb);
+@time NeuroTreeModels.fit!(loss, θ, dtrain, opt, nrounds = 1, cb = cb);
 #######
 # mse
 #######
@@ -98,8 +95,8 @@ function gauss1(μ, σ, y)
     return gauss / length(y)
 end
 
-@btime NeuroTreeModels.gauss_𝑙(preds[1,:], preds[1,:], y)
-@btime gauss1(preds[1,:], preds[1,:], y)
+@btime NeuroTreeModels.gauss_𝑙(preds[1, :], preds[1, :], y)
+@btime gauss1(preds[1, :], preds[1, :], y)
 
 # gauss_𝑙(μ, σ, y) = mean(-σ .- (y .- μ) .^ 2 ./ (2 .* max.(Float32(2e-7), exp.(2 .* σ))))
 

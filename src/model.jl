@@ -32,7 +32,8 @@ function (m::NeuroTree{W,B,P,F})(x::W) where {W,B,P,F}
     return pred
 end
 
-dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)), dims=(2, 3))
+dot_prod_agg(lw, p) =
+    dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims = (2, 3)), dims = (2, 3))
 
 """
     NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, init_scale=1e-1)
@@ -40,7 +41,15 @@ dot_prod_agg(lw, p) = dropdims(sum(reshape(lw, 1, size(lw)...) .* p, dims=(2, 3)
 
 Initialization of a NeuroTree.
 """
-function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, scaler=true, init_scale=1e-1)
+function NeuroTree(;
+    ins,
+    outs,
+    depth = 4,
+    ntrees = 64,
+    actA = identity,
+    scaler = true,
+    init_scale = 1e-1,
+)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
@@ -49,11 +58,18 @@ function NeuroTree(; ins, outs, depth=4, ntrees=64, actA=identity, scaler=true, 
         Float32.((rand(nnodes * ntrees) .- 0.5) ./ 4), # b
         Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
         actA,
-        scaler
+        scaler,
     )
     return nt
 end
-function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, actA=identity, scaler=true, init_scale=1e-1)
+function NeuroTree(
+    (ins, outs)::Pair{<:Integer,<:Integer};
+    depth = 4,
+    ntrees = 64,
+    actA = identity,
+    scaler = true,
+    init_scale = 1e-1,
+)
     nnodes = 2^depth - 1
     nleaves = 2^depth
     nt = NeuroTree(
@@ -62,7 +78,7 @@ function NeuroTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, a
         Float32.((rand(nnodes * ntrees) .- 0.5) ./ 4), # b
         Float32.(randn(outs, nleaves, ntrees) .* init_scale), # p
         actA,
-        scaler
+        scaler,
     )
     return nt
 end
@@ -76,20 +92,37 @@ struct StackTree
 end
 @layer StackTree
 
-function StackTree((ins, outs)::Pair{<:Integer,<:Integer}; depth=4, ntrees=64, stack_size=2, hidden_size=8, actA=identity, scaler=true, init_scale=1e-1)
+function StackTree(
+    (ins, outs)::Pair{<:Integer,<:Integer};
+    depth = 4,
+    ntrees = 64,
+    stack_size = 2,
+    hidden_size = 8,
+    actA = identity,
+    scaler = true,
+    init_scale = 1e-1,
+)
     @assert stack_size == 1 || hidden_size >= outs
     trees = []
-    for i in 1:stack_size
+    for i = 1:stack_size
         if i == 1
             if i < stack_size
-                tree = NeuroTree(ins => hidden_size; depth, ntrees, actA, scaler, init_scale)
+                tree =
+                    NeuroTree(ins => hidden_size; depth, ntrees, actA, scaler, init_scale)
                 push!(trees, tree)
             else
                 tree = NeuroTree(ins => outs; depth, ntrees, actA, scaler, init_scale)
                 push!(trees, tree)
             end
         elseif i < stack_size
-            tree = NeuroTree(hidden_size => hidden_size; depth, ntrees, actA, scaler, init_scale)
+            tree = NeuroTree(
+                hidden_size => hidden_size;
+                depth,
+                ntrees,
+                actA,
+                scaler,
+                init_scale,
+            )
             push!(trees, tree)
         else
             tree = NeuroTree(hidden_size => outs; depth, ntrees, actA, scaler, init_scale)
@@ -102,7 +135,7 @@ end
 
 function (m::StackTree)(x::AbstractMatrix)
     p = m.trees[1](x)
-    for i in 2:length(m.trees)
+    for i = 2:length(m.trees)
         if i < length(m.trees)
             p = p .+ m.trees[i](p)
         else
@@ -134,31 +167,36 @@ Inference for NeuroTreeModel
 function (m::NeuroTreeModel)(x::AbstractMatrix)
     p = m.chain(x)
     if size(p, 1) == 1
-        p = dropdims(p; dims=1)
+        p = dropdims(p; dims = 1)
     end
     return p
 end
-function (m::NeuroTreeModel)(data::AbstractDataFrame; device=:cpu, gpuID=0)
+function (m::NeuroTreeModel)(data::AbstractDataFrame; device = :cpu, gpuID = 0)
     if device == :gpu
         CUDA.device!(gpuID)
     end
     m = device == :cpu ? m |> cpu : m |> gpu
-    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device)
+    dinfer = get_df_loader_infer(
+        data;
+        feature_names = m.info[:feature_names],
+        batchsize = 2048,
+        device,
+    )
     p = infer(m, dinfer)
     return p
 end
 
 
 function _identity_act(x)
-    return x ./ sum(abs.(x), dims=2)
+    return x ./ sum(abs.(x), dims = 2)
 end
 function _tanh_act(x)
     x = Flux.tanh_fast.(x)
-    return x ./ sum(abs.(x), dims=2)
+    return x ./ sum(abs.(x), dims = 2)
 end
 function _hardtanh_act(x)
     x = Flux.hardtanh.(x)
-    return x ./ sum(abs.(x), dims=2)
+    return x ./ sum(abs.(x), dims = 2)
 end
 
 """
@@ -170,11 +208,8 @@ end
 
 Dictionary mapping features activation name to their function.
 """
-const act_dict = Dict(
-    :identity => _identity_act,
-    :tanh => _tanh_act,
-    :hardtanh => _hardtanh_act,
-)
+const act_dict =
+    Dict(:identity => _identity_act, :tanh => _tanh_act, :hardtanh => _hardtanh_act)
 
 function get_model_chain(L; config, nfeats, outsize)
 
@@ -183,36 +218,42 @@ function get_model_chain(L; config, nfeats, outsize)
             BatchNorm(nfeats),
             Parallel(
                 vcat,
-                StackTree(nfeats => outsize;
-                    depth=config.depth,
-                    ntrees=config.ntrees,
-                    stack_size=config.stack_size,
-                    hidden_size=config.hidden_size,
-                    actA=act_dict[config.actA],
-                    scaler=config.scaler,
-                    init_scale=config.init_scale),
-                StackTree(nfeats => outsize;
-                    depth=config.depth,
-                    ntrees=config.ntrees,
-                    stack_size=config.stack_size,
-                    hidden_size=config.hidden_size,
-                    actA=act_dict[config.actA],
-                    scaler=config.scaler,
-                    init_scale=config.init_scale)
-            )
+                StackTree(
+                    nfeats => outsize;
+                    depth = config.depth,
+                    ntrees = config.ntrees,
+                    stack_size = config.stack_size,
+                    hidden_size = config.hidden_size,
+                    actA = act_dict[config.actA],
+                    scaler = config.scaler,
+                    init_scale = config.init_scale,
+                ),
+                StackTree(
+                    nfeats => outsize;
+                    depth = config.depth,
+                    ntrees = config.ntrees,
+                    stack_size = config.stack_size,
+                    hidden_size = config.hidden_size,
+                    actA = act_dict[config.actA],
+                    scaler = config.scaler,
+                    init_scale = config.init_scale,
+                ),
+            ),
         )
     else
         outsize = L <: GaussianMLE ? 2 * outsize : outsize
         chain = Chain(
             BatchNorm(nfeats),
-            StackTree(nfeats => outsize;
-                depth=config.depth,
-                ntrees=config.ntrees,
-                stack_size=config.stack_size,
-                hidden_size=config.hidden_size,
-                actA=act_dict[config.actA],
-                scaler=config.scaler,
-                init_scale=config.init_scale)
+            StackTree(
+                nfeats => outsize;
+                depth = config.depth,
+                ntrees = config.ntrees,
+                stack_size = config.stack_size,
+                hidden_size = config.hidden_size,
+                actA = act_dict[config.actA],
+                scaler = config.scaler,
+                init_scale = config.init_scale,
+            ),
         )
 
     end

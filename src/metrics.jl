@@ -10,15 +10,15 @@ import Flux: Chain, logσ, logsoftmax, onehotbatch
     mse(x, y, w; agg=mean)
     mse(x, y, w, offset; agg=mean)
 """
-function mse(m, x, y; agg=mean)
+function mse(m, x, y; agg = mean)
     metric = agg((m(x) .- y) .^ 2)
     return metric
 end
-function mse(m, x, y, w; agg=mean)
+function mse(m, x, y, w; agg = mean)
     metric = agg((m(x) .- y) .^ 2 .* w)
     return metric
 end
-function mse(m, x, y, w, offset; agg=mean)
+function mse(m, x, y, w, offset; agg = mean)
     metric = agg((m(x) .+ offset .- y) .^ 2 .* w)
     return metric
 end
@@ -28,15 +28,15 @@ end
     mae(x, y, w; agg=mean)
     mae(x, y, w, offset; agg=mean)
 """
-function mae(m, x, y; agg=mean)
+function mae(m, x, y; agg = mean)
     metric = agg(abs.(m(x) .- y))
     return metric
 end
-function mae(m, x, y, w; agg=mean)
+function mae(m, x, y, w; agg = mean)
     metric = agg(abs.(m(x) .- y) .* w)
     return metric
 end
-function mae(m, x, y, w, offset; agg=mean)
+function mae(m, x, y, w, offset; agg = mean)
     metric = agg(abs.(m(x) .+ offset .- y) .* w)
     return metric
 end
@@ -47,17 +47,17 @@ end
     logloss(x, y, w; agg=mean)
     logloss(x, y, w, offset; agg=mean)
 """
-function logloss(m, x, y; agg=mean)
+function logloss(m, x, y; agg = mean)
     p = m(x)
     metric = agg((1 .- y) .* p .- logσ.(p))
     return metric
 end
-function logloss(m, x, y, w; agg=mean)
+function logloss(m, x, y, w; agg = mean)
     p = m(x)
     metric = agg(((1 .- y) .* p .- logσ.(p)) .* w)
     return metric
 end
-function logloss(m, x, y, w, offset; agg=mean)
+function logloss(m, x, y, w, offset; agg = mean)
     p = m(x) .+ offset
     metric = agg(((1 .- y) .* p .- logσ.(p)) .* w)
     return metric
@@ -69,26 +69,35 @@ end
     tweedie(x, y, w; agg=mean)
     tweedie(x, y, w, offset; agg=mean)
 """
-function tweedie(m, x, y; agg=mean)
+function tweedie(m, x, y; agg = mean)
     rho = eltype(x)(1.5)
     p = exp.(m(x))
-    agg(2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
-              p .^ (2 - rho) / (2 - rho))
+    agg(
+        2 .* (
+            y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+            p .^ (2 - rho) / (2 - rho)
+        ),
     )
 end
 function tweedie(m, x, y, w)
     agg = mean
     rho = eltype(x)(1.5)
     p = exp.(m(x))
-    agg(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
-                   p .^ (2 - rho) / (2 - rho))
+    agg(
+        w .* 2 .* (
+            y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+            p .^ (2 - rho) / (2 - rho)
+        ),
     )
 end
-function tweedie(m, x, y, w, offset; agg=mean)
+function tweedie(m, x, y, w, offset; agg = mean)
     rho = eltype(x)(1.5)
     p = exp.(m(x) .+ offset)
-    agg(w .* 2 .* (y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
-                   p .^ (2 - rho) / (2 - rho))
+    agg(
+        w .* 2 .* (
+            y .^ (2 - rho) / (1 - rho) / (2 - rho) - y .* p .^ (1 - rho) / (1 - rho) +
+            p .^ (2 - rho) / (2 - rho)
+        ),
     )
 end
 
@@ -97,24 +106,24 @@ end
     mlogloss(x, y, w; agg=mean)
     mlogloss(x, y, w, offset; agg=mean)
 """
-function mlogloss(m, x, y; agg=mean)
-    p = logsoftmax(m(x); dims=1)
+function mlogloss(m, x, y; agg = mean)
+    p = logsoftmax(m(x); dims = 1)
     k = size(p, 1)
-    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
+    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims = 1); dims = 1)
     metric = agg(raw)
     return metric
 end
-function mlogloss(m, x, y, w; agg=mean)
-    p = logsoftmax(m(x); dims=1)
+function mlogloss(m, x, y, w; agg = mean)
+    p = logsoftmax(m(x); dims = 1)
     k = size(p, 1)
-    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
+    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims = 1); dims = 1)
     metric = agg(raw .* w)
     return metric
 end
-function mlogloss(m, x, y, w, offset; agg=mean)
-    p = logsoftmax(m(x) .+ offset; dims=1)
+function mlogloss(m, x, y, w, offset; agg = mean)
+    p = logsoftmax(m(x) .+ offset; dims = 1)
     k = size(p, 1)
-    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims=1); dims=1)
+    raw = dropdims(-sum(onehotbatch(y, 1:k) .* p; dims = 1); dims = 1)
     metric = agg(raw .* w)
     return metric
 end
@@ -134,27 +143,27 @@ gaussian_mle(μ::T, σ::T, y::T, w::T) where {T<:AbstractFloat} =
     gaussian_mle(x, y, w; agg=mean)
     gaussian_mle(x, y, w, offset; agg=mean)
 """
-function gaussian_mle(m, x, y; agg=mean)
+function gaussian_mle(m, x, y; agg = mean)
     p = m(x)
     metric = agg(gaussian_mle.(view(p, 1, :), view(p, 2, :), y))
     return metric
 end
-function gaussian_mle(m, x, y, w; agg=mean)
+function gaussian_mle(m, x, y, w; agg = mean)
     p = m(x)
     metric = agg(gaussian_mle.(view(p, 1, :), view(p, 2, :), y, w))
     return metric
 end
-function gaussian_mle(m, x, y, w, offset; agg=mean)
+function gaussian_mle(m, x, y, w, offset; agg = mean)
     p = m(x) .+ offset
     metric = agg(gaussian_mle.(view(p, 1, :), view(p, 2, :), y, w))
     return metric
 end
 
-function eval(m, f::Function, data)
+function evaluate(m, f::Function, data)
     metric = 0.0f0
     ws = 0.0f0
     for d in data
-        metric += f(m, d...; agg=sum)
+        metric += f(m, d...; agg = sum)
         if length(d) >= 3
             ws += sum(d[3])
         else

@@ -14,7 +14,7 @@ function leaf_weights!(nw)
             end
         end
     end
-    @views lw = cw[size(nw, 1)+1:size(cw, 1), :, 1:size(nw, 3)]
+    @views lw = cw[(size(nw, 1)+1):size(cw, 1), :, 1:size(nw, 3)]
     return (cw, lw)
 end
 
@@ -29,7 +29,7 @@ function leaf_weights!(nw::AnyCuArray)
     threads = size(nw, 2)
     @cuda threads = threads blocks = blocks leaf_weights!_kernel!(cw, nw)
     CUDA.synchronize()
-    @views lw = cw[size(nw, 1)+1:size(cw, 1), :, 1:size(nw, 3)]
+    @views lw = cw[(size(nw, 1)+1):size(cw, 1), :, 1:size(nw, 3)]
     return (cw, lw)
 end
 
@@ -38,7 +38,7 @@ function leaf_weights!_kernel!(cw::CuDeviceArray, nw::CuDeviceArray)
     tree = threadIdx().x # one thread per tree
     batch = blockIdx().x # one block per batch
 
-    @inbounds for i in 2:2:size(cw, 1)
+    @inbounds for i = 2:2:size(cw, 1)
         # child cumulative probability is obtained from the product of the parent cumulative prob (cw[parent]) and the parent probability (np[parent])
         parent = cw[i>>1, tree, batch]
         child = nw[i>>1, tree, batch]
@@ -139,7 +139,7 @@ function Δ_leaf_weights_kernel!(
         leaf_offset = step * (i - 2^depth) # offset on the leaf row
         child = nw[i, tree, batch]
         # loop on node weight leaf dependencies - half positive + half negative 
-        @inbounds for j in (1+leaf_offset:step÷2+leaf_offset)
+        @inbounds for j in ((1+leaf_offset):(step÷2+leaf_offset))
             k = j + node_offset # move from leaf  position to full tree position
             Δnw[i, tree, batch] +=
                 ȳ[j, tree, batch] * cw[k, tree, batch] / max(1.0f-8, child)

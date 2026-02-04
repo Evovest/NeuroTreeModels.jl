@@ -12,21 +12,12 @@ df = DataFrame(x, :auto);
 df.y = y;
 feature_names = Symbol("x" .* string.(1:nfeats))
 
-config = NeuroTreeRegressor(;
-    actA=:identity,
-    depth=3,
-    ntrees=32,
-    init_scale=0.1,
-)
+config = NeuroTreeRegressor(; actA = :identity, depth = 3, ntrees = 32, init_scale = 0.1)
 
 loss = NeuroTreeModels.get_loss_fn(config)
 L = NeuroTreeModels.get_loss_type(config)
-chain = NeuroTreeModels.get_model_chain(L; config, nfeats, outsize=1)
-info = Dict(
-    :device => :cpu,
-    :nrounds => 0,
-    :feature_names => feature_names
-)
+chain = NeuroTreeModels.get_model_chain(L; config, nfeats, outsize = 1)
+info = Dict(:device => :cpu, :nrounds => 0, :feature_names => feature_names)
 m = NeuroTreeModel(L, chain, info)
 xb = x'
 yb = y
@@ -46,11 +37,11 @@ db = grad_neuro[:b]
 dp = grad_neuro[:p]
 
 # fig =  plot(x=vec(w); type=:scatter, mode="markers")
-fig = plot(x=vec(w); type=:histogram)
-fig = plot(x=vec(dw); type=:histogram)
+fig = plot(x = vec(w); type = :histogram)
+fig = plot(x = vec(dw); type = :histogram)
 
-fig = plot(x=vec(b); type=:histogram)
-fig = plot(x=vec(db); type=:histogram)
+fig = plot(x = vec(b); type = :histogram)
+fig = plot(x = vec(db); type = :histogram)
 
-fig = plot(x=vec(p); type=:histogram)
-fig = plot(x=vec(dp); type=:histogram)
+fig = plot(x = vec(p); type = :histogram)
+fig = plot(x = vec(dp); type = :histogram)

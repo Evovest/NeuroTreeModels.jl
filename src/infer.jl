@@ -11,7 +11,12 @@ infer(m::NeuroTreeModel, data)
 Return the inference of a `NeuroTreeModel` over `data`, where `data` is `AbstractDataFrame`.
 """
 function infer(m::NeuroTreeModel, data::AbstractDataFrame)
-    dinfer = get_df_loader_infer(data; feature_names=m.info[:feature_names], batchsize=2048, device=m.info[:device])
+    dinfer = get_df_loader_infer(
+        data;
+        feature_names = m.info[:feature_names],
+        batchsize = 2048,
+        device = m.info[:device],
+    )
     p = infer(m, dinfer)
     return p
 end
@@ -41,7 +46,7 @@ function infer(m::NeuroTreeModel{<:MLogLoss}, data::DL)
         push!(preds, Matrix(m(x)'))
     end
     p = vcat(preds...)
-    softmax!(p; dims=2)
+    softmax!(p; dims = 2)
     return p
 end
 

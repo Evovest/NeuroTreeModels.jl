@@ -3,8 +3,8 @@ function init(
     df::AbstractDataFrame;
     feature_names,
     target_name,
-    weight_name=nothing,
-    offset_name=nothing,
+    weight_name = nothing,
+    offset_name = nothing,
 )
 
     device = config.device
@@ -17,19 +17,30 @@ function init(
     target_isordered = false
     outsize = 1
     if L <: MLogLoss
-        eltype(df[!, target_name]) <: CategoricalValue || error("Target variable `$target_name` must have its elements `<: CategoricalValue`")
+        eltype(df[!, target_name]) <: CategoricalValue || error(
+            "Target variable `$target_name` must have its elements `<: CategoricalValue`",
+        )
         target_levels = CategoricalArrays.levels(df[!, target_name])
         target_isordered = isordered(df[!, target_name])
         outsize = length(target_levels)
     end
-    dtrain = NeuroTreeModels.get_df_loader_train(df; feature_names, target_name, weight_name, offset_name, batchsize, device)
+    dtrain = NeuroTreeModels.get_df_loader_train(
+        df;
+        feature_names,
+        target_name,
+        weight_name,
+        offset_name,
+        batchsize,
+        device,
+    )
 
     chain = get_model_chain(L; config, nfeats, outsize)
     info = Dict(
         :nrounds => 0,
         :feature_names => feature_names,
         :target_levels => target_levels,
-        :target_isordered => target_isordered)
+        :target_isordered => target_isordered,
+    )
     m = NeuroTreeModel(L, chain, info)
     if device == :gpu
         m = m |> gpu
@@ -38,7 +49,7 @@ function init(
     optim = OptimiserChain(NAdam(config.lr), WeightDecay(config.wd))
     opts = Optimisers.setup(optim, m)
 
-    cache = (dtrain=dtrain, loss=loss, opts=opts, info=info)
+    cache = (dtrain = dtrain, loss = loss, opts = opts, info = info)
     return m, cache
 end
 
@@ -78,11 +89,11 @@ function fit(
     dtrain;
     feature_names,
     target_name,
-    weight_name=nothing,
-    offset_name=nothing,
-    deval=nothing,
-    print_every_n=9999,
-    verbosity=1,
+    weight_name = nothing,
+    offset_name = nothing,
+    deval = nothing,
+    print_every_n = 9999,
+    verbosity = 1,
 )
 
     device = Symbol(config.device)

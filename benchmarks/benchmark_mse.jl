@@ -19,28 +19,22 @@ X = rand(Float32, nobs, num_feat)
 Y = randn(Float32, size(X, 1))
 
 config = NeuroTreeRegressor(
-    loss=:mse,
-    nrounds=1,
-    actA=:identity,
-    depth=5,
-    ntrees=64,
-    batchsize=2048,
-    rng=123,
-    lr=1e-3,
-    device=:gpu,
+    loss = :mse,
+    nrounds = 1,
+    actA = :identity,
+    depth = 5,
+    ntrees = 64,
+    batchsize = 2048,
+    rng = 123,
+    lr = 1e-3,
+    device = :gpu,
 )
 
-CUDA.@time m, cache = NeuroTreeModels.init(config, x_train=X, y_train=Y);
+CUDA.@time m, cache = NeuroTreeModels.init(config, x_train = X, y_train = Y);
 CUDA.@time NeuroTreeModels.fit!(m, cache);
-CUDA.@time NeuroTreeModels.fit(config, x_train=X, y_train=Y);
-@time NeuroTrees.fit(config, x_train=X, y_train=Y);
-CUDA.@time NeuroTreeModels.fit(
-    config,
-    x_train=X,
-    y_train=Y,
-    x_eval=X,
-    y_eval=Y,
-);
+CUDA.@time NeuroTreeModels.fit(config, x_train = X, y_train = Y);
+@time NeuroTrees.fit(config, x_train = X, y_train = Y);
+CUDA.@time NeuroTreeModels.fit(config, x_train = X, y_train = Y, x_eval = X, y_eval = Y);
 
 #######
 # mse
@@ -53,9 +47,9 @@ CUDA.@time NeuroTreeModels.fit(
 _device = config.device == "cpu" ? NeuroTrees.cpu : NeuroTrees.gpu
 dinfer = NeuroTreeModels.DataLoader(
     Matrix{Float32}(X') |> _device,
-    batchsize=config.batchsize,
-    shuffle=false,
-    partial=true,
+    batchsize = config.batchsize,
+    shuffle = false,
+    partial = true,
 )
 @time pred = NeuroTreeModels.infer(m, dinfer);
 @btime pred = NeuroTreeModels.infer($m, $dinfer);
